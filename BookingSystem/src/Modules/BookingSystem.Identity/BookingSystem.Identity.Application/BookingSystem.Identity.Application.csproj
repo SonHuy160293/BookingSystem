@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\BuildingBlocks\BookingSystem.SharedKernel\BookingSystem.SharedKernel.csproj" />
+    <ProjectReference Include="..\BookingSystem.Identity.Domain\BookingSystem.Identity.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Abstractions\Services\" />
+  </ItemGroup>
+
+</Project>

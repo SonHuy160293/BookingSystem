@@ -1,0 +1,58 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: bookingsystem-identity-sqlserver
+    env_file:
+      - ../env/.dev.env
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver-data:/var/opt/mssql
+    restart: unless-stopped
+    healthcheck:
+      test: /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "$$MSSQL_SA_PASSWORD" -C -Q "SELECT 1" || /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "$$MSSQL_SA_PASSWORD" -Q "SELECT 1" || exit 1
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  migrationrunner:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+      target: final-migration
+    env_file:
+      - ../env/.dev.env
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    restart: "no"
+
+  api:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+      target: final-api
+    container_name: bookingsystem-identity-api
+    env_file:
+      - ../env/.dev.env
+    ports:
+      - "8080:8080"
+    volumes:
+      - api-uploads:/app/wwwroot/uploads
+    restart: unless-stopped
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+      migrationrunner:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health/ready"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    
+volumes:
+  sqlserver-data:
+  api-uploads:
