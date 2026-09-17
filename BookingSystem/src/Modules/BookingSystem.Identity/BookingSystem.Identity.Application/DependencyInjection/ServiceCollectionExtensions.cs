@@ -1,3 +1,4 @@
+using BookingSystem.Identity.Application.Behaviors;
 using BookingSystem.SharedKernel.Behaviors;
 using BookingSystem.SharedKernel.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,6 +9,7 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddApplication(this IServiceCollection services)
         => services
+            .AddScoped<Features.Auth.AuthResponseFactory>()
             .AddApplicationCqrs()
             .AddApplicationPipelineBehaviors();
 
@@ -39,5 +41,5 @@ public static class ServiceCollectionExtensions
         => services.AddPipelineBehavior(typeof(TracingPipelineBehavior<,>));
 
     public static IServiceCollection AddTransactionBehavior(this IServiceCollection services)
-        => services.AddPipelineBehavior(typeof(TransactionPipelineBehavior<,>));
+        => services.AddPipelineBehavior(typeof(IdentityTransactionBehavior<,>));
 }

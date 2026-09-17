@@ -121,6 +121,22 @@ Configure only behavior supported by the schema and repository conventions, incl
 - delete behavior;
 - concurrency properties.
 
+Use plural **PascalCase table names**, such as `ScreeningRooms`,
+`SeatLayoutVersions`, `OrderItems` and `OutboxMessages`. Preserve the established
+schema (`cinema`, `ordering`, `payment`, `reliability`, or `dbo`) and PascalCase
+columns. Map names explicitly, for example:
+
+```csharp
+builder.ToTable("SeatLayoutVersions", "cinema");
+```
+
+Keep table literals in mapping-helper calls consistent with `ToTable`. Do not copy
+legacy lowercase or snake_case table names from old mappings or migrations into
+new code unless the user explicitly requires that database name. Quote PascalCase
+table and column identifiers in custom PostgreSQL SQL. A mapping rename does not
+rename a deployed table; create or apply a migration only when requested, and do
+not rewrite historical migrations or snapshots to simulate deployment.
+
 Do not duplicate audit/soft-delete configuration already supplied by shared conventions or interceptors unless existing module mappings explicitly do so.
 
 Do not place business rules in EF configuration.
@@ -151,7 +167,7 @@ Before finishing, inspect the model, configuration, and DbContext registration t
 - property types match the database columns;
 - nullability matches;
 - PK/FK types match;
-- table/schema names are correct;
+- table names are plural PascalCase and schema names are correct;
 - lengths and precision match;
 - indexes/uniqueness match;
 - navigation relationships agree on both sides;

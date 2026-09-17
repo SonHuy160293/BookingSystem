@@ -1,3 +1,9 @@
+using BookingSystem.SharedKernel.Security;
+
 namespace BookingSystem.Identity.Application.Contracts.Roles;
 
-public sealed record CreateRoleRequest(string Name, string? Description);
+public sealed record CreateRoleRequest(
+    string Name,
+    string? Description,
+    Guid? TenantId = null,
+    RbacScopeType ScopeType = RbacScopeType.Platform);

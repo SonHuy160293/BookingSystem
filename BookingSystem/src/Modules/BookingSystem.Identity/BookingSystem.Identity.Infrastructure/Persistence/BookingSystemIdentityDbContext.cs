@@ -10,6 +10,8 @@ public sealed class BookingSystemIdentityDbContext : DbContext
         : base(options) { }
 
     public DbSet<User> Users => Set<User>();
+    public DbSet<Tenant> Tenants => Set<Tenant>();
+    public DbSet<Branch> Branches => Set<Branch>();
     public DbSet<PermissionDefinition> PermissionDefinitions => Set<PermissionDefinition>();
     public DbSet<Role> Roles => Set<Role>();
     public DbSet<RoleClaim> RoleClaims => Set<RoleClaim>();
@@ -17,6 +19,8 @@ public sealed class BookingSystemIdentityDbContext : DbContext
     public DbSet<UserLogin> UserLogins => Set<UserLogin>();
     public DbSet<UserRole> UserRoles => Set<UserRole>();
     public DbSet<UserToken> UserTokens => Set<UserToken>();
+    public DbSet<AuthSession> AuthSessions => Set<AuthSession>();
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
 
     protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
     {

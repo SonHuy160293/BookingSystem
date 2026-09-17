@@ -12,5 +12,6 @@
       <ProjectReference Include="..\..\..\BuildingBlocks\BookingSystem.ServiceDefaults\BookingSystem.ServiceDefaults.csproj" />
       <ProjectReference Include="..\BookingSystem.Identity.Application\BookingSystem.Identity.Application.csproj" />
       <ProjectReference Include="..\BookingSystem.Identity.Infrastructure\BookingSystem.Identity.Infrastructure.csproj" />
+      <ProjectReference Include="..\BookingSystem.Identity.Worker\BookingSystem.Identity.Worker.csproj" />
     </ItemGroup>
 </Project>

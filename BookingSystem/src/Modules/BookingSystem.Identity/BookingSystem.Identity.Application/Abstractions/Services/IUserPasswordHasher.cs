@@ -5,4 +5,5 @@ namespace BookingSystem.Identity.Application.Abstractions.Services;
 public interface IUserPasswordHasher
 {
     string HashPassword(User user, string password);
+    bool IsCorrectPassword(User user, string passwordHash, string password);
 }

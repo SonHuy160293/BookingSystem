@@ -1,6 +1,10 @@
+using BookingSystem.SharedKernel.Abstractions.Domain;
+using BookingSystem.SharedKernel.Exceptions;
+using BookingSystem.SharedKernel.Security;
+
 namespace BookingSystem.Identity.Domain.Models;
 
-public sealed class PermissionDefinition
+public sealed class PermissionDefinition : IEntity<Guid>
 {
     public Guid Id { get; private set; }
     public string Function { get; private set; } = null!;
@@ -11,6 +15,7 @@ public sealed class PermissionDefinition
     public string? Description { get; private set; }
     public int DisplayOrder { get; private set; }
     public bool IsEnabled { get; private set; }
+    public RbacScopeType ScopeType { get; private set; }
 
     private PermissionDefinition() { }
 
@@ -21,7 +26,8 @@ public sealed class PermissionDefinition
        string value,
        string groupName,
        string? description,
-       int displayOrder)
+       int displayOrder,
+       RbacScopeType scopeType)
     {
         Id = Guid.CreateVersion7();
         Function = function;
@@ -32,6 +38,7 @@ public sealed class PermissionDefinition
         Description = description;
         DisplayOrder = displayOrder;
         IsEnabled = true;
+        ScopeType = scopeType;
     }
 
     public static PermissionDefinition Create(
@@ -41,8 +48,12 @@ public sealed class PermissionDefinition
           string value,
           string groupName,
           string? description,
-          int displayOrder)
-          => new(function, action, name, value, groupName, description, displayOrder);
+          int displayOrder,
+          RbacScopeType scopeType = RbacScopeType.Platform)
+    {
+        ValidateScopeType(scopeType);
+        return new PermissionDefinition(function, action, name, value, groupName, description, displayOrder, scopeType);
+    }
 
     public void Sync(
         string function,
@@ -50,8 +61,14 @@ public sealed class PermissionDefinition
         string name,
         string groupName,
         string? description,
-        int displayOrder)
+        int displayOrder,
+        RbacScopeType? scopeType = null)
     {
+        if (scopeType is { } specifiedScopeType)
+        {
+            ValidateScopeType(specifiedScopeType);
+        }
+
         Function = function;
         Action = action;
         Name = name;
@@ -59,8 +76,18 @@ public sealed class PermissionDefinition
         Description = description;
         DisplayOrder = displayOrder;
         IsEnabled = true;
+        ScopeType = scopeType ?? ScopeType;
     }
 
     public void Disable()
         => IsEnabled = false;
+
+    private static void ValidateScopeType(RbacScopeType scopeType)
+    {
+        if (!Enum.IsDefined(scopeType))
+        {
+            throw new ValidationException(
+                [new ValidationError(nameof(ScopeType), "ScopeType must be PLATFORM, TENANT, or BRANCH.")]);
+        }
+    }
 }

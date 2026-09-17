@@ -1,5 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
+using System.Text.Json;
 using BookingSystem.SharedKernel.Security;
 using Microsoft.AspNetCore.Http;
 
@@ -35,6 +36,51 @@ public sealed class HttpContextCurrentUserProvider : ICurrentUserProvider
             .Distinct(StringComparer.Ordinal)
             .ToArray();
 
-        return new CurrentUser(userId, userName, email, permissions);
+        return new CurrentUser(
+            Id: userId,
+            UserName: userName,
+            Email: email,
+            TenantIds: ReadIds(user, CustomClaims.TenantIds),
+            BranchIds: ReadIds(user, CustomClaims.BranchIds),
+            Permissions: permissions,
+            SessionId: user.FindFirstValue(CustomClaims.SessionId));
+    }
+
+    private static string[] ReadIds(ClaimsPrincipal user, string claimType)
+    {
+        var ids = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var claim in user.FindAll(claimType))
+        {
+            var value = claim.Value.Trim();
+            if (value.StartsWith("[", StringComparison.Ordinal))
+            {
+                try
+                {
+                    var values = JsonSerializer.Deserialize<string[]>(value);
+                    foreach (var id in values ?? [])
+                    {
+                        AddId(id, ids);
+                    }
+                }
+                catch (JsonException)
+                {
+                    // Malformed claims cannot grant an ID membership.
+                }
+            }
+            else
+            {
+                AddId(value, ids);
+            }
+        }
+
+        return ids.Order(StringComparer.Ordinal).ToArray();
+    }
+
+    private static void AddId(string? value, ISet<string> ids)
+    {
+        if (Guid.TryParse(value, out var id) && id != Guid.Empty)
+        {
+            ids.Add(id.ToString());
+        }
     }
 }

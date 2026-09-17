@@ -20,7 +20,8 @@ public static class PermissionDefinitionSeeder
                 permission.Value,
                 group.GroupName,
                 permission.Description,
-                DisplayOrder = (groupIndex * 100) + permissionIndex
+                DisplayOrder = (groupIndex * 100) + permissionIndex,
+                permission.ScopeType
             }))
             .ToArray();
         var catalogValues = catalog
@@ -37,7 +38,8 @@ public static class PermissionDefinitionSeeder
                     permission.Name,
                     permission.GroupName,
                     permission.Description,
-                    permission.DisplayOrder);
+                    permission.DisplayOrder,
+                    permission.ScopeType);
                 continue;
             }
 
@@ -49,7 +51,8 @@ public static class PermissionDefinitionSeeder
                     permission.Value,
                     permission.GroupName,
                     permission.Description,
-                    permission.DisplayOrder),
+                    permission.DisplayOrder,
+                    permission.ScopeType ?? RbacScopeType.Platform),
                 cancellationToken);
         }
 

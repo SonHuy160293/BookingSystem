@@ -1,4 +1,5 @@
 using BookingSystem.SharedKernel.Abstractions.Message;
+using BookingSystem.SharedKernel.Security;
 
 namespace BookingSystem.Identity.Application.Features.Roles.Commands.CreateRole;
 
@@ -10,6 +11,20 @@ public sealed class CreateRoleCommandValidator : IValidator<CreateRoleCommand>
 
         var errors = new List<string>();
         var name = command.Request.Name?.Trim();
+
+        if (command.Request.TenantId == Guid.Empty)
+        {
+            errors.Add("TenantId must not be empty when supplied.");
+        }
+
+        if (!Enum.IsDefined(typeof(RbacScopeType), command.Request.ScopeType))
+        {
+            errors.Add("ScopeType must be PLATFORM, TENANT, or BRANCH.");
+        }
+        else if (command.Request.ScopeType == RbacScopeType.Platform && command.Request.TenantId.HasValue)
+        {
+            errors.Add("PLATFORM roles must not have a TenantId.");
+        }
 
         if (string.IsNullOrWhiteSpace(name))
         {

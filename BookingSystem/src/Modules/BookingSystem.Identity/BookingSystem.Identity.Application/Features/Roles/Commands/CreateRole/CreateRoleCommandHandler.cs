@@ -4,6 +4,7 @@ using BookingSystem.Identity.Domain.Models;
 using BookingSystem.SharedKernel.Abstractions.Message;
 using BookingSystem.SharedKernel.Abstractions.Shared;
 using BookingSystem.SharedKernel.Exceptions;
+using BookingSystem.SharedKernel.Security;
 
 namespace BookingSystem.Identity.Application.Features.Roles.Commands.CreateRole;
 
@@ -21,14 +22,27 @@ public sealed class CreateRoleCommandHandler : ICommandHandler<CreateRoleCommand
         var name = command.Request.Name.Trim();
         var normalizedName = name.ToUpperInvariant();
 
-        if (await _repository.NormalizedNameExistsAsync(normalizedName, cancellationToken))
+        if (await _repository.NormalizedNameExistsAsync(normalizedName, command.Request.TenantId, command.Request.ScopeType, cancellationToken))
         {
             throw new ConflictException("Role.NameAlreadyExists", $"Role with name '{name}' already exists.");
         }
 
-        var role = Role.Create(command.Request.Description, name, normalizedName, Guid.NewGuid().ToString());
+        var role = Role.Create(
+            command.Request.Description,
+            name,
+            normalizedName,
+            Guid.NewGuid().ToString(),
+            command.Request.TenantId,
+            command.Request.ScopeType);
         await _repository.AddAsync(role, cancellationToken);
 
-        return Result.Success(new RoleDto(role.Id, role.Name, role.Description, role.CreatedAt, []));
+        return Result.Success(new RoleDto(
+            role.Id,
+            role.Name,
+            role.Description,
+            role.CreatedAt,
+            [],
+            role.TenantId,
+            command.Request.ScopeType.ToString()));
     }
 }

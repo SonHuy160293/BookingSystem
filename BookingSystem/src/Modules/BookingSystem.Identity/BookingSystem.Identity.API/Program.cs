@@ -5,15 +5,13 @@ using BookingSystem.AspNetCore.Options;
 using BookingSystem.Identity.API.Health;
 using BookingSystem.Identity.Application.DependencyInjection;
 using BookingSystem.Identity.Infrastructure.DependencyInjection;
-using BookingSystem.SharedKernel.Security;
+using BookingSystem.Identity.Worker.DependencyInjection;
 using BookingSystem.ServiceDefaults;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
-using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Serilog;
 using System.Globalization;
-using System.Net;
 using System.Text.Json;
 using System.Threading.RateLimiting;
 
@@ -33,52 +31,41 @@ try
 
     builder.Services
         .AddApplication()
-        .AddInfrastructure(builder.Configuration);
+        .AddInfrastructure(builder.Configuration)
+        .AddIdentityWorker();
 
     builder.Services.AddCurrentUserProvider();
     builder.Services.AddControllers(options =>
     {
-        options.Filters.Add<ApiResponseEnvelopeFilter>();
+        options.Filters.Add<BookingSystem.Identity.API.Filters.AuthApiResponseEnvelopeFilter>();
     });
     builder.Services.AddConfiguredCors(builder.Configuration);
-    //builder.Services.AddConfiguredAuthentication(builder.Configuration, builder.Environment);
-    //builder.Services.AddConfiguredAuthorization();
-    //builder.Services.Configure<ForwardedHeadersOptions>(options =>
-    //{
-    //    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    builder.Services.AddConfiguredAuthentication(builder.Configuration, builder.Environment);
+    builder.Services.AddConfiguredAuthorization();
+    builder.Services.AddTrustedForwarding(builder.Configuration);
+    builder.Services.AddRateLimiter(options =>
+    {
+        options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+        foreach (string name in new[] { "AuthLogin", "AuthRefresh", "AuthManagement" })
+        {
+            bool login = name == "AuthLogin";
+            string section = login ? "RateLimiting:AuthPublic" : "RateLimiting:AuthRefresh";
+            int permits = builder.Configuration.GetValue(section + ":PermitLimit", login ? 5 : 60);
+            int minutes = builder.Configuration.GetValue(section + ":WindowMinutes", login ? 10 : 1);
+            if (permits <= 0 || minutes <= 0)
+            {
+                throw new InvalidOperationException("Authentication rate limits must be positive.");
+            }
 
-    //    foreach (var proxy in builder.Configuration.GetSection("ForwardedHeaders:KnownProxies").Get<string[]>() ?? [])
-    //    {
-    //        if (IPAddress.TryParse(proxy, out var proxyAddress))
-    //        {
-    //            options.KnownProxies.Add(proxyAddress);
-    //        }
-    //    }
-    //});
-    //builder.Services.AddRateLimiter(options =>
-    //{
-    //    var permitLimit = builder.Configuration.GetValue("RateLimiting:AuthPublic:PermitLimit", 5);
-    //    var windowMinutes = builder.Configuration.GetValue("RateLimiting:AuthPublic:WindowMinutes", 10);
-
-    //    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-    //    options.AddPolicy(RateLimitPolicyNames.AuthPublic, httpContext =>
-    //    {
-    //        var clientIp = httpContext.Connection.RemoteIpAddress?.ToString()
-    //            ?? IPAddress.Loopback.ToString();
-    //        var endpointKey = httpContext.Request.Path.Value ?? "unknown";
-    //        var clientKey = $"{clientIp}:{endpointKey}";
-
-    //        return RateLimitPartition.GetFixedWindowLimiter(
-    //            clientKey,
-    //            _ => new FixedWindowRateLimiterOptions
-    //            {
-    //                PermitLimit = permitLimit,
-    //                Window = TimeSpan.FromMinutes(windowMinutes),
-    //                QueueLimit = 0,
-    //                QueueProcessingOrder = QueueProcessingOrder.OldestFirst
-    //            });
-    //    });
-    //});
+            options.AddPolicy(name, context => RateLimitPartition.GetFixedWindowLimiter(
+                name + ":" + (context.User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                    ?? context.Connection.RemoteIpAddress?.ToString() ?? "unknown"),
+                _ => new FixedWindowRateLimiterOptions
+                {
+                    PermitLimit = permits, Window = TimeSpan.FromMinutes(minutes), QueueLimit = 0
+                }));
+        }
+    });
     builder.Services.AddConfiguredApiVersioning();
     builder.Services
         .AddHealthChecks()
@@ -105,6 +92,7 @@ try
     app.UseForwardedHeaders();
     app.UseCorrelationId();
     app.UseGlobalExceptionHandling();
+    app.UseMiddleware<BookingSystem.Identity.API.Middleware.AuthDatabaseFailureMiddleware>();
     app.UseApiStatusCodeEnvelope();
     app.UseSerilogRequestLogging();
     app.UseStaticFiles();
@@ -163,13 +151,14 @@ try
     }
     else
     {
-        app.UseHttpsRedirection();
+        app.UseWhen(context => !context.Request.Path.StartsWithSegments("/health"),
+            branch => branch.UseHttpsRedirection());
     }
 
     app.UseCors(CorsOptions.PolicyName);
-    //app.UseRateLimiter();
-    //app.UseAuthentication();
-    //app.UseAuthorization();
+    app.UseAuthentication();
+    app.UseRateLimiter();
+    app.UseAuthorization();
 
     app.MapHealthChecks("/health/live", new HealthCheckOptions
     {
@@ -184,13 +173,12 @@ try
     });
 
     app.MapControllers();
-    app.MapDefaultEndpoints();
 
     await app.RunAsync();
 
     Log.Information("Company.Project API stopped cleanly");
 }
-catch (Exception exception)
+catch (Exception exception) when (exception is not HostAbortedException)
 {
     Log.Fatal(exception, "Company.Project API terminated unexpectedly");
     throw;
@@ -219,3 +207,5 @@ static Task WriteHealthCheckResponseAsync(HttpContext context, HealthReport repo
 
     return context.Response.WriteAsync(JsonSerializer.Serialize(response));
 }
+
+public partial class Program { }

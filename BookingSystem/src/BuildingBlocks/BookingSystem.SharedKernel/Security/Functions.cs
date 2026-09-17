@@ -2,9 +2,27 @@ namespace BookingSystem.SharedKernel.Security;
 
 public static class Functions
 {
+    public const string Cinemas = nameof(Cinemas);
+    public const string CinemasGroupName = "Cinema_Permissions";
+    public const string CinemasViewDescription = "View authorized cinemas";
+    public const string CinemasCreateDescription = "Create authorized cinema profiles";
+    public const string CinemasUpdateDescription = "Update authorized cinemas";
+    public const string Films = nameof(Films);
+    public const string FilmsGroupName = "Film_Permissions";
+    public const string FilmsViewDescription = "View the film catalog";
+    public const string FilmsCreateDescription = "Create films";
+    public const string FilmsUpdateDescription = "Update films";
+
     public const string Dashboard = nameof(Dashboard);
     public const string DashboardGroupName = "Dashboard_Permissions";
     public const string DashboardViewDescription = "Permission to view dashboard summary";
+
+    public const string Tenants = nameof(Tenants);
+    public const string TenantsGroupName = "Tenant_Permissions";
+    public const string TenantsViewDescription = "Permission to view Tenants";
+    public const string TenantsCreateDescription = "Permission to create Tenants";
+    public const string TenantsUpdateDescription = "Permission to update Tenants";
+    public const string TenantsDeleteDescription = "Permission to delete Tenants";
 
     public const string Users = nameof(Users);
     public const string UsersGroupName = "User_Permissions";

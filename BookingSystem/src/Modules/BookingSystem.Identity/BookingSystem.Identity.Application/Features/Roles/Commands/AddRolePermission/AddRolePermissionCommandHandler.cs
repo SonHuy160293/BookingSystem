@@ -20,7 +20,7 @@ public sealed class AddRolePermissionCommandHandler : ICommandHandler<AddRolePer
     {
         var role = await _repository.GetByIdAsync(command.Id, cancellationToken);
         var requested = command.Request.Permissions.ToHashSet(StringComparer.Ordinal);
-        var enabled = await _repository.GetEnabledPermissionValuesAsync(requested, cancellationToken);
+        var enabled = await _repository.GetEnabledPermissionValuesByScopeAsync(requested, role.ScopeType, cancellationToken);
         var invalid = requested.Except(enabled, StringComparer.Ordinal).ToArray();
         if (invalid.Length > 0)
         {

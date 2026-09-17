@@ -14,11 +14,16 @@ public sealed class UserRepository : RepositoryBase<User>, IUserRepository
     {
     }
 
+    protected IQueryable<User> GetUserByNormalizedEmail(string normalizedEmail) => Query(user => user.NormalizedEmail == normalizedEmail);
+
     public Task<bool> NormalizedUserNameExistsAsync(string normalizedUserName, CancellationToken cancellationToken)
         => Query(user => user.NormalizedUserName == normalizedUserName).AnyAsync(cancellationToken);
 
     public Task<bool> NormalizedEmailExistsAsync(string normalizedEmail, CancellationToken cancellationToken)
-        => Query(user => user.NormalizedEmail == normalizedEmail).AnyAsync(cancellationToken);
+        => GetUserByNormalizedEmail(normalizedEmail).AnyAsync(cancellationToken);
+
+    public Task<User?> GetUserByNormalizedEmailAsync(string normalizedEmail, CancellationToken cancellationToken)
+        => GetUserByNormalizedEmail(normalizedEmail).FirstOrDefaultAsync(cancellationToken);
 
     public async Task<AccountUserDto> GetUserByIdAsync(Guid id, CancellationToken cancellationToken)
         => await Query(user => user.Id == id)
@@ -29,15 +34,28 @@ public sealed class UserRepository : RepositoryBase<User>, IUserRepository
                 user.Email,
                 user.JobTitle,
                 user.IsEnabled,
-                user.CreatedAt))
+                user.CreatedAt,
+                null,
+                null))
             .SingleOrDefaultAsync(cancellationToken)
             ?? throw new NotFoundException("User.NotFound", $"User '{id}' was not found.");
 
-    public Task<bool> HasRoleAsync(Guid userId, Guid roleId, CancellationToken cancellationToken)
+    public Task<bool> HasRoleAsync(Guid userId, Guid roleId, Guid? tenantId, Guid? branchId, CancellationToken cancellationToken)
         => DbContext.UserRoles
             .AsNoTracking()
-            .AnyAsync(userRole => userRole.UserId == userId && userRole.RoleId == roleId, cancellationToken);
+            .AnyAsync(
+                userRole => userRole.UserId == userId && userRole.RoleId == roleId
+                    && userRole.TenantId == tenantId && userRole.BranchId == branchId,
+                cancellationToken);
 
     public async Task AddUserRoleAsync(UserRole userRole, CancellationToken cancellationToken)
         => await DbContext.UserRoles.AddAsync(userRole, cancellationToken);
+
+    public async Task<IReadOnlyList<UserRole>> GetUserRoleAsync(Guid userId, CancellationToken cancellationToken)
+        => await DbContext.UserRoles
+            .AsNoTracking()
+            .Where(userRole => userRole.UserId == userId)
+            .Include(userRole => userRole.Role)
+            .ThenInclude(role => role.RoleClaims)
+            .ToListAsync(cancellationToken);
 }

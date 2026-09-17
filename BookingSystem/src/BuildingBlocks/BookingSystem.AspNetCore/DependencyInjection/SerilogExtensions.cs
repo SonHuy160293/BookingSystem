@@ -1,3 +1,4 @@
+using BookingSystem.AspNetCore.HttpClients;
 using Microsoft.AspNetCore.Builder;
 using Serilog;
 using Serilog.Events;
@@ -18,7 +19,9 @@ public static class SerilogExtensions
                     .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
                     .Enrich.FromLogContext()
                     .Enrich.WithMachineName()
-                    .Enrich.WithThreadId();
+                    .Enrich.WithThreadId()
+                    .Enrich.With(new HttpClientLogPrivacy())
+                    .Filter.With(new HttpClientLogPrivacy());
             },
             writeToProviders: true);
 

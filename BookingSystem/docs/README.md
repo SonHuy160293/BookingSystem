@@ -12,6 +12,13 @@ Root `AGENTS.md` should remain a small entry point: repository map, global invar
 | Runtime orchestration / Aspire / observability boundaries | `docs/architecture/runtime-orchestration.md` |
 | Repository investigation / CodeGraph | `docs/development/repository-investigation.md` |
 | Verification | `docs/development/verification.md` |
+| Typed internal/external HTTP clients, resilience and correlation | [HTTP clients](development/http-clients.md) |
+| Cinema/Film management APIs and Identity integration | `docs/development/cinema-management-api.md` |
+| Booking inventory, payment and shared reliability persistence | [Booking reliability](development/booking-reliability.md) |
+| Cinema seat catalog, layout assignments and publication rules | [Cinema seating](development/cinema-seating.md) |
+| Identity login, refresh tokens and device sessions | `docs/development/identity-auth-sessions.md` |
+| Identity hosted cleanup and Worker library | [Worker README](../src/Modules/BookingSystem.Identity/BookingSystem.Identity.Worker/README.md) |
+| YARP gateway routes, security and operations | `docs/development/gateway.md` |
 | Deployment/environment handling | `docs/development/deployment.md` |
 | Planning and execution-plan lifecycle | `docs/PLANS.md` |
 | Active long-running plans | `docs/exec-plans/active/` |

@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
     <ItemGroup>
         <PackageReference Include="Asp.Versioning.Mvc" />
         <PackageReference Include="Asp.Versioning.Mvc.ApiExplorer" />
@@ -15,5 +15,6 @@
     </ItemGroup>
     <ItemGroup>
       <ProjectReference Include="..\BookingSystem.SharedKernel\BookingSystem.SharedKernel.csproj" />
+      <ProjectReference Include="..\BookingSystem.HttpClients\BookingSystem.HttpClients.csproj" />
     </ItemGroup>
 </Project>

@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="../BookingSystem.Identity.Application/BookingSystem.Identity.Application.csproj" />
+    <ProjectReference Include="../../../BuildingBlocks/BookingSystem.SharedKernel/BookingSystem.SharedKernel.csproj" />
+  </ItemGroup>
+</Project>

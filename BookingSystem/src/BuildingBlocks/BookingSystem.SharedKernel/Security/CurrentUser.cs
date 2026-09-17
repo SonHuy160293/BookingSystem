@@ -4,4 +4,7 @@ public sealed record CurrentUser(
     string? Id,
     string? UserName = null,
     string? Email = null,
-    IReadOnlyCollection<string>? Permissions = null);
+    string[]? TenantIds = null,
+    string[]? BranchIds = null,
+    IReadOnlyCollection<string>? Permissions = null,
+    string? SessionId = null);

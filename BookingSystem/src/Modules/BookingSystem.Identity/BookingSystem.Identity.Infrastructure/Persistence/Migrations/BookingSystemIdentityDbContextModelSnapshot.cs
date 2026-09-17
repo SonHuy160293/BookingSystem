@@ -22,6 +22,105 @@ namespace BookingSystem.Identity.Infrastructure.Persistence.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("BookingSystem.Identity.Domain.Models.AuthSession", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("AbsoluteExpiresAt")
+                        .HasColumnType("datetime2(7)");
+
+                    b.Property<string>("ClientId")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2(7)");
+
+                    b.Property<Guid>("CurrentRefreshTokenId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("DeviceName")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<DateTime>("IdleExpiresAt")
+                        .HasColumnType("datetime2(7)");
+
+                    b.Property<DateTime>("LastRefreshedAt")
+                        .HasColumnType("datetime2(7)");
+
+                    b.Property<DateTime?>("RevokedAt")
+                        .HasColumnType("datetime2(7)");
+
+                    b.Property<string>("RevokedReason")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<string>("SecurityStampAtLogin")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("IX_AuthSessions_UserId");
+
+                    b.HasIndex("AbsoluteExpiresAt", "UserId")
+                        .HasDatabaseName("IX_AuthSessions_Cleanup");
+
+                    b.ToTable("AuthSessions", "dbo");
+                });
+
+            modelBuilder.Entity("BookingSystem.Identity.Domain.Models.Branch", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Address")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset(7)");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("datetimeoffset(7)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("TenantId")
+                        .HasDatabaseName("IX_Branches_TenantId");
+
+                    b.ToTable("Branches", "dbo");
+                });
+
             modelBuilder.Entity("BookingSystem.Identity.Domain.Models.PermissionDefinition", b =>
                 {
                     b.Property<Guid>("Id")
@@ -58,6 +157,12 @@ namespace BookingSystem.Identity.Infrastructure.Persistence.Migrations
                         .HasMaxLength(150)
                         .HasColumnType("nvarchar(150)");
 
+                    b.Property<string>("ScopeType")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(8)");
+
                     b.Property<string>("Value")
                         .IsRequired()
                         .HasMaxLength(150)
@@ -65,7 +170,52 @@ namespace BookingSystem.Identity.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("PermissionDefinitions", "dbo");
+                    b.ToTable("PermissionDefinitions", "dbo", t =>
+                        {
+                            t.HasCheckConstraint("CK_PermissionDefinitions_ScopeType", "[ScopeType] IN ('PLATFORM', 'TENANT', 'BRANCH')");
+                        });
+                });
+
+            modelBuilder.Entity("BookingSystem.Identity.Domain.Models.RefreshToken", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("ConsumedAt")
+                        .HasColumnType("datetime2(7)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2(7)");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime2(7)");
+
+                    b.Property<Guid?>("ReplacedByTokenId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .IsRequired()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("rowversion");
+
+                    b.Property<Guid>("SessionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<byte[]>("TokenHash")
+                        .IsRequired()
+                        .HasColumnType("binary(32)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SessionId")
+                        .HasDatabaseName("IX_RefreshTokens_SessionId");
+
+                    b.HasIndex("TokenHash")
+                        .IsUnique()
+                        .HasDatabaseName("UX_RefreshTokens_TokenHash");
+
+                    b.ToTable("RefreshTokens", "dbo");
                 });
 
             modelBuilder.Entity("BookingSystem.Identity.Domain.Models.Role", b =>
@@ -96,6 +246,16 @@ namespace BookingSystem.Identity.Infrastructure.Persistence.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
+                    b.Property<string>("ScopeType")
+                        .IsRequired()
+                        .HasMaxLength(8)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(8)");
+
+                    b.Property<Guid?>("TenantId")
+                        .HasColumnType("uniqueidentifier")
+                        .HasComment("NULL means a reusable role definition available across the platform; ScopeType determines assignment scope.");
+
                     b.Property<DateTimeOffset?>("UpdatedAt")
                         .HasColumnType("datetimeoffset(7)");
 
@@ -105,7 +265,20 @@ namespace BookingSystem.Identity.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Roles", "dbo");
+                    b.HasIndex("TenantId")
+                        .HasDatabaseName("IX_Roles_TenantId");
+
+                    b.HasIndex("TenantId", "ScopeType", "NormalizedName")
+                        .IsUnique()
+                        .HasDatabaseName("UX_Roles_TenantId_ScopeType_NormalizedName")
+                        .HasFilter("[NormalizedName] IS NOT NULL");
+
+                    b.ToTable("Roles", "dbo", t =>
+                        {
+                            t.HasCheckConstraint("CK_Roles_PlatformTenant", "[ScopeType] <> 'PLATFORM' OR [TenantId] IS NULL");
+
+                            t.HasCheckConstraint("CK_Roles_ScopeType", "[ScopeType] IN ('PLATFORM', 'TENANT', 'BRANCH')");
+                        });
                 });
 
             modelBuilder.Entity("BookingSystem.Identity.Domain.Models.RoleClaim", b =>
@@ -130,6 +303,75 @@ namespace BookingSystem.Identity.Infrastructure.Persistence.Migrations
                     b.ToTable("RoleClaims", "dbo");
                 });
 
+            modelBuilder.Entity("BookingSystem.Identity.Domain.Models.Tenant", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Address")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("ContactEmail")
+                        .HasMaxLength(256)
+                        .HasColumnType("nvarchar(256)");
+
+                    b.Property<string>("ContactPhone")
+                        .HasMaxLength(32)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(32)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset(7)");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("LegalName")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<string>("LogoUrl")
+                        .HasColumnType("nvarchar(max)")
+                        .HasColumnName("LogoUrl");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<string>("Slug")
+                        .HasMaxLength(250)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(250)")
+                        .HasColumnName("Slug");
+
+                    b.Property<string>("TaxCode")
+                        .HasMaxLength(50)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("datetimeoffset(7)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Slug")
+                        .IsUnique()
+                        .HasDatabaseName("UX_Tenants_Slug")
+                        .HasFilter("[Slug] IS NOT NULL");
+
+                    b.ToTable("Tenants", "dbo");
+                });
+
             modelBuilder.Entity("BookingSystem.Identity.Domain.Models.User", b =>
                 {
                     b.Property<Guid>("Id")
@@ -142,6 +384,9 @@ namespace BookingSystem.Identity.Infrastructure.Persistence.Migrations
                     b.Property<string>("AvatarUrl")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
+
+                    b.Property<Guid?>("BranchId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("ConcurrencyStamp")
                         .HasColumnType("nvarchar(max)");
@@ -217,6 +462,9 @@ namespace BookingSystem.Identity.Infrastructure.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("BranchId")
+                        .HasDatabaseName("IX_Users_BranchId");
+
                     b.ToTable("Users", "dbo");
                 });
 
@@ -265,15 +513,40 @@ namespace BookingSystem.Identity.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("BookingSystem.Identity.Domain.Models.UserRole", b =>
                 {
-                    b.Property<Guid>("UserId")
+                    b.Property<Guid>("Id")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("BranchId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<Guid>("RoleId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.HasKey("UserId", "RoleId");
+                    b.Property<Guid?>("TenantId")
+                        .HasColumnType("uniqueidentifier");
 
-                    b.ToTable("UserRoles", "dbo");
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RoleId")
+                        .HasDatabaseName("IX_UserRoles_RoleId");
+
+                    b.HasIndex("TenantId")
+                        .HasDatabaseName("IX_UserRoles_TenantId");
+
+                    b.HasIndex("BranchId", "TenantId")
+                        .HasDatabaseName("IX_UserRoles_BranchId_TenantId");
+
+                    b.HasIndex("UserId", "RoleId", "TenantId", "BranchId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_UserRoles_UserId_RoleId_TenantId_BranchId");
+
+                    b.ToTable("UserRoles", "dbo", t =>
+                        {
+                            t.HasCheckConstraint("CK_UserRoles_BranchRequiresTenant", "[BranchId] IS NULL OR [TenantId] IS NOT NULL");
+                        });
                 });
 
             modelBuilder.Entity("BookingSystem.Identity.Domain.Models.UserToken", b =>
@@ -297,14 +570,60 @@ namespace BookingSystem.Identity.Infrastructure.Persistence.Migrations
                     b.ToTable("UserTokens", "dbo");
                 });
 
+            modelBuilder.Entity("BookingSystem.Identity.Domain.Models.AuthSession", b =>
+                {
+                    b.HasOne("BookingSystem.Identity.Domain.Models.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("BookingSystem.Identity.Domain.Models.Branch", b =>
+                {
+                    b.HasOne("BookingSystem.Identity.Domain.Models.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired()
+                        .HasConstraintName("FK_Branches_Tenants_TenantId");
+                });
+
+            modelBuilder.Entity("BookingSystem.Identity.Domain.Models.RefreshToken", b =>
+                {
+                    b.HasOne("BookingSystem.Identity.Domain.Models.AuthSession", null)
+                        .WithMany()
+                        .HasForeignKey("SessionId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("BookingSystem.Identity.Domain.Models.Role", b =>
+                {
+                    b.HasOne("BookingSystem.Identity.Domain.Models.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .HasConstraintName("FK_Roles_Tenants_TenantId");
+                });
+
             modelBuilder.Entity("BookingSystem.Identity.Domain.Models.RoleClaim", b =>
                 {
                     b.HasOne("BookingSystem.Identity.Domain.Models.Role", null)
-                        .WithMany()
+                        .WithMany("RoleClaims")
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_RoleClaims_Roles_RoleId");
+                });
+
+            modelBuilder.Entity("BookingSystem.Identity.Domain.Models.User", b =>
+                {
+                    b.HasOne("BookingSystem.Identity.Domain.Models.Branch", null)
+                        .WithMany()
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .HasConstraintName("FK_Users_Branches_BranchId");
                 });
 
             modelBuilder.Entity("BookingSystem.Identity.Domain.Models.UserClaim", b =>
@@ -329,12 +648,18 @@ namespace BookingSystem.Identity.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("BookingSystem.Identity.Domain.Models.UserRole", b =>
                 {
-                    b.HasOne("BookingSystem.Identity.Domain.Models.Role", null)
+                    b.HasOne("BookingSystem.Identity.Domain.Models.Role", "Role")
                         .WithMany()
                         .HasForeignKey("RoleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_UserRoles_Roles_RoleId");
+
+                    b.HasOne("BookingSystem.Identity.Domain.Models.Tenant", null)
+                        .WithMany()
+                        .HasForeignKey("TenantId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .HasConstraintName("FK_UserRoles_Tenants_TenantId");
 
                     b.HasOne("BookingSystem.Identity.Domain.Models.User", null)
                         .WithMany()
@@ -342,6 +667,15 @@ namespace BookingSystem.Identity.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_UserRoles_Users_UserId");
+
+                    b.HasOne("BookingSystem.Identity.Domain.Models.Branch", null)
+                        .WithMany()
+                        .HasForeignKey("BranchId", "TenantId")
+                        .HasPrincipalKey("Id", "TenantId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .HasConstraintName("FK_UserRoles_Branches_BranchId_TenantId");
+
+                    b.Navigation("Role");
                 });
 
             modelBuilder.Entity("BookingSystem.Identity.Domain.Models.UserToken", b =>
@@ -352,6 +686,11 @@ namespace BookingSystem.Identity.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_UserTokens_Users_UserId");
+                });
+
+            modelBuilder.Entity("BookingSystem.Identity.Domain.Models.Role", b =>
+                {
+                    b.Navigation("RoleClaims");
                 });
 #pragma warning restore 612, 618
         }

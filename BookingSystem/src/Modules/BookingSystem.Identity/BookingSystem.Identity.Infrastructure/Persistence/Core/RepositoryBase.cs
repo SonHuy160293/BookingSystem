@@ -1,5 +1,4 @@
 using BookingSystem.EntityFrameworkCore.Repositories;
-using BookingSystem.Identity.Application.Abstractions.Persistence;
 using BookingSystem.SharedKernel.Abstractions.Domain;
 using BookingSystem.SharedKernel.Abstractions.Persistence;
 using BookingSystem.SharedKernel.Exceptions;

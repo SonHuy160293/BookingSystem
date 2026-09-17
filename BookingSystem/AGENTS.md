@@ -12,11 +12,12 @@ BookingSystem is a modular-monolith backend built with ASP.NET Core and Clean Ar
 
 Bounded contexts live under `src/Modules/<ModuleName>`, normally split into `Api / Application / Domain / Infrastructure / Worker / MigrationRunner` projects.
 
-Current modules are **Identity, Order, Inventory, Payment, and Cart**. Verify a module exists in source before modeling code after reference material.
+Current modules are **Identity, Order, Cinema, Payment, and Cart**. Verify a module exists in source before modeling code after reference material.
 
 | Area | Path | Local guidance |
 | --- | --- | --- |
 | Shared technical primitives | `src/BuildingBlocks/` | `src/BuildingBlocks/AGENTS.md` |
+| Gateway HTTP routing and policies | `src/ApiGateway/` | `src/ApiGateway/AGENTS.md` |
 | Local orchestration | `src/BookingSystem.AppHost/` | `src/BookingSystem.AppHost/AGENTS.md` |
 | Cross-module DTOs & events | `src/Contracts/` | `src/Contracts/AGENTS.md` |
 | Bounded-context modules | `src/Modules/` | `src/Modules/AGENTS.md` |
@@ -42,6 +43,7 @@ These rules apply everywhere unless a deeper `AGENTS.md` explicitly narrows them
 - .NET 10; SDK version is pinned in `global.json`.
 - C# latest, nullable reference types enabled, implicit usings enabled.
 - NuGet versions are centrally managed in `Directory.Packages.props`. Project files use bare `PackageReference` entries without `Version` attributes.
+- Database tables use plural PascalCase names (for example, `ScreeningRooms` and `OrderItems`); columns use PascalCase. Preserve established schema names. Quote PascalCase identifiers in custom PostgreSQL SQL.
 - Build-time analyzers and `.editorconfig` are the source of truth for naming and formatting.
 - A change that only satisfies the IDE but not the build is not valid.
 
@@ -50,7 +52,8 @@ These rules apply everywhere unless a deeper `AGENTS.md` explicitly narrows them
 The repository follows this dependency direction:
 
 ```text
-Module.Api             -> Module.Application + Module.Infrastructure + Contracts + BuildingBlocks
+Module.Api             -> Module.Application + Module.Infrastructure + optional Worker library + Contracts + BuildingBlocks
+Module.Worker (library)-> Module.Application + BuildingBlocks
 Module.Infrastructure  -> Module.Application + Module.Domain + Contracts + BuildingBlocks
 Module.Application     -> Module.Domain + Contracts + BuildingBlocks
 Module.Domain          -> BuildingBlocks only
@@ -59,6 +62,10 @@ BuildingBlocks         -> other BuildingBlocks projects, one-way, no cycles
 ```
 
 **Application must never reference Infrastructure.**
+
+An API may reference its module's Worker class library from the composition root.
+Worker libraries must not reference Infrastructure or API; the host supplies
+persistence implementations through Application abstractions.
 
 Controllers must not inject `DbContext`, `UserManager`, `RoleManager`, repositories, or domain/business services directly. Controllers communicate with Application through `ISender`.
 

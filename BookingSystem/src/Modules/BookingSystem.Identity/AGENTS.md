@@ -15,11 +15,15 @@ The Identity module owns accounts, roles, permissions, authentication/tokens, an
 | `BookingSystem.Identity.Domain`          | Entities, domain rules, domain events                                |
 | `BookingSystem.Identity.Infrastructure`  | EF Core, SQL Server, repositories, external services                 |
 | `BookingSystem.Identity.MigrationRunner` | Applies EF Core migrations                                           |
-| `BookingSystem.Identity.Worker`          | Background/async processing                                          |
+| `BookingSystem.Identity.Worker`          | Background services class library, hosted by Identity API             |
 
 Keep Identity-specific code inside this module rather than moving it into `BuildingBlocks` unless it is genuinely reusable technical infrastructure.
 
+Tenant owns chain branding through its existing Name and optional Slug and LogoUrl properties. Non-null slugs are globally unique and normalized to lowercase. Cinema.Id reuses Branch.Id for its venue profile, while Cinema.TenantId remains a scalar tenant reference. There are no cross-module database foreign keys or entity navigations. Branch name and address serve administrative workflows; Cinema owns public venue presentation. Existing Identity Branch references remain unchanged.
+
 ## Application
+
+CinemaAccess integration queries expose current role-derived scopes and verified Branch ownership to trusted services through IntegrationApiController's service-key filter. They do not expose domain entities or grant access from a raw permission claim. See [Cinema management API](../../../docs/development/cinema-management-api.md) for the wire contract and configuration.
 
 Organize use cases by feature:
 
@@ -134,13 +138,21 @@ Do not catch and re-wrap them in controllers.
 
 ## Worker and MigrationRunner
 
-`Worker` is optional and should exist only when this module requires background processing, scheduled work, queue consumption, or similar hosted workloads.
+`BookingSystem.Identity.Worker` is a class library containing hosted background
+services. The API references it and calls `AddIdentityWorker()` after registering
+Application and Infrastructure. It has no executable entry point or separate
+deployment. See [Worker guidance](BookingSystem.Identity.Worker/AGENTS.md) and
+[Worker README](BookingSystem.Identity.Worker/README.md).
 
-`MigrationRunner` applies pending migrations for `ApplicationDbContext`.
+Worker references Application and SharedKernel, never Infrastructure or API.
+Keep scheduling and scoped orchestration in Worker; business rules, repositories,
+and command transactions remain in their existing layers.
 
-Both are thin hosts.
+`MigrationRunner` is a separate thin host applying pending migrations for
+`BookingSystemIdentityDbContext`. It does not register the Worker services.
 
-Do not place business logic directly in either host. Invoke Application commands/queries or appropriate application services instead.
+Do not place business logic in Worker or MigrationRunner. Invoke Application
+commands/queries or appropriate application abstractions instead.
 
 ## Adding a CQRS feature
 

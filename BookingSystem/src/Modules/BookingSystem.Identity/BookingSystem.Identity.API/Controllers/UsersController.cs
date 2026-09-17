@@ -4,8 +4,6 @@ using BookingSystem.Identity.Application.Features.Users.Commands.AddUserRole;
 using BookingSystem.Identity.Application.Features.Users.Commands.CreateUser;
 using BookingSystem.Identity.Application.Features.Users.Queries.GetUserById;
 using BookingSystem.SharedKernel.Cqrs;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BookingSystem.Identity.API.Controllers;

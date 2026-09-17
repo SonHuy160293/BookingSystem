@@ -7,4 +7,6 @@ public sealed record AccountUserDto(
     string? Email,
     string? JobTitle,
     bool IsEnabled,
-    DateTimeOffset CreatedAt);
+    DateTimeOffset CreatedAt,
+    IReadOnlyCollection<string>? Roles = null,
+    IReadOnlyCollection<string>? Permissions = null);

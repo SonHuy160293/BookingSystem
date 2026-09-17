@@ -1,4 +1,5 @@
 using BookingSystem.EntityFrameworkCore.Interceptors;
+using BookingSystem.Identity.Application.Abstractions.Persistence;
 using BookingSystem.Identity.Application.Abstractions.Repositories;
 using BookingSystem.Identity.Application.Abstractions.Services;
 using BookingSystem.Identity.Infrastructure.DependencyInjection.Options;
@@ -11,6 +12,7 @@ using BookingSystem.SharedKernel.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace BookingSystem.Identity.Infrastructure.DependencyInjection;
 
@@ -21,6 +23,8 @@ public static class ServiceCollectionExtensions
             .AddPersistence(configuration)
             .AddRepositories()
             .AddPasswordHashing()
+            .AddScoped<IJwtTokenService, JwtTokenService>()
+            .AddAuthSessions(configuration)
             .AddUnitOfWork();
 
     public static IServiceCollection AddPersistence(this IServiceCollection services, IConfiguration configuration)
@@ -44,14 +48,22 @@ public static class ServiceCollectionExtensions
 
     public static IServiceCollection AddRepositories(this IServiceCollection services)
         => services
+            .AddScoped<IBranchRepository, BranchRepository>()
+            .AddScoped<ICinemaAccessRepository, CinemaAccessRepository>()
+            .AddScoped<ITenantRepository, TenantRepository>()
+            .AddScoped<IPermissionRepository, PermissionRepository>()
             .AddScoped<IRolesRepository, RolesRepository>()
-            .AddScoped<IUserRepository, UserRepository>();
+            .AddScoped<IUserRepository, UserRepository>()
+            .AddScoped<IAuthSessionRepository, AuthSessionRepository>()
+            .AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 
     public static IServiceCollection AddPasswordHashing(this IServiceCollection services)
         => services.AddSingleton<IUserPasswordHasher, UserPasswordHasher>();
 
     public static IServiceCollection AddUnitOfWork(this IServiceCollection services)
-        => services.AddScoped<IUnitOfWork, EfUnitOfWork>();
+        => services.AddScoped<EfUnitOfWork>()
+            .AddScoped<IUnitOfWork>(provider => provider.GetRequiredService<EfUnitOfWork>())
+            .AddScoped<IAuthUnitOfWork>(provider => provider.GetRequiredService<EfUnitOfWork>());
 
     //public static IServiceCollection AddNotifications(this IServiceCollection services, IConfiguration configuration)
     //{
@@ -97,6 +109,26 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddInfrastructureCqrs(this IServiceCollection services)
         => services
             .AddSelfMadeCqrs(typeof(ServiceCollectionExtensions).Assembly);
+
+    private static IServiceCollection AddAuthSessions(this IServiceCollection services, IConfiguration configuration)
+    {
+        services.TryAddSingleton(TimeProvider.System);
+        services.AddOptions<AuthSessionOptions>().Bind(configuration.GetSection(AuthSessionOptions.SectionName))
+            .Validate(options => !string.IsNullOrWhiteSpace(options.DefaultClientId)
+                && options.DefaultClientId.Length <= 128 && options.AllowedClientIds.Length > 0
+                && options.AllowedClientIds.All(client => !string.IsNullOrWhiteSpace(client) && client.Length <= 128)
+                && options.IsAllowedClient(options.DefaultClientId), "Configure an allowed default authentication client.")
+            .Validate(options => options.IdleExpirationDays > 0 && options.AbsoluteExpirationDays >= options.IdleExpirationDays
+                && options.AbsoluteExpirationDays <= 365 && options.RetentionDays is >= 7 and <= 365
+                && options.CleanupBatchSize is > 0 and <= 100, "Invalid authentication session lifetime or cleanup limits.")
+            .ValidateOnStart();
+        services.AddOptions<AuthSessionOptions>()
+            .Validate(_ => configuration.GetValue("Jwt:AccessTokenExpirationMinutes", 5) is > 0 and <= 5,
+                "Identity access token lifetime must be between one and five minutes.")
+            .ValidateOnStart();
+        services.AddSingleton<IRefreshTokenService, RefreshTokenService>();
+        return services;
+    }
 
     private static string GetApplicationConnectionString(IConfiguration configuration)
     {

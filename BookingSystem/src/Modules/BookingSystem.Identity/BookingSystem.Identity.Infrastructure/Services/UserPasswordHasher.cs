@@ -10,4 +10,7 @@ public sealed class UserPasswordHasher : IUserPasswordHasher
 
     public string HashPassword(User user, string password)
         => _passwordHasher.HashPassword(user, password);
+
+    public bool IsCorrectPassword(User user, string passwordHash, string password)
+        => _passwordHasher.VerifyHashedPassword(user, passwordHash, password) != PasswordVerificationResult.Failed;
 }

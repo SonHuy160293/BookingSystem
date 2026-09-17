@@ -18,7 +18,7 @@ public sealed class RoleClaimConfiguration : IEntityTypeConfiguration<RoleClaim>
         builder.Property(roleClaim => roleClaim.ClaimValue).HasColumnType("nvarchar(max)");
 
         builder.HasOne<Role>()
-            .WithMany()
+            .WithMany(role => role.RoleClaims)
             .HasForeignKey(roleClaim => roleClaim.RoleId)
             .OnDelete(DeleteBehavior.Cascade)
             .HasConstraintName("FK_RoleClaims_Roles_RoleId");
