@@ -16,6 +16,11 @@ public sealed class CreateUserCommandValidator : IValidator<CreateUserCommand>
         ValidateRequiredLength(request.UserName, nameof(request.UserName), 256, errors);
         ValidateRequiredLength(request.JobTitle, nameof(request.JobTitle), 100, errors);
 
+        if (string.IsNullOrWhiteSpace(request.FullName))
+        {
+            errors.Add("Name is required.");
+        }
+
         if (string.IsNullOrWhiteSpace(request.Email))
         {
             errors.Add("Email is required.");
@@ -29,14 +34,19 @@ public sealed class CreateUserCommandValidator : IValidator<CreateUserCommand>
             }
             else if (!MailAddress.TryCreate(email, out var parsedEmail)
                      || !string.Equals(parsedEmail.Address, email, StringComparison.OrdinalIgnoreCase))
-            {
-                errors.Add("Email format is invalid.");
-            }
+        {
+            errors.Add("Email format is invalid.");
+        }
         }
 
         if (string.IsNullOrWhiteSpace(request.Password))
         {
             errors.Add("Password is required.");
+        }
+
+        if (request.Password.Count(char.IsDigit) < 6)
+        {
+            errors.Add("Password must contain at least 6 digits.");
         }
 
         if (errors.Count > 0)

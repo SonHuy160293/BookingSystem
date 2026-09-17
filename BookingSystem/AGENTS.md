@@ -2,136 +2,52 @@
 
 Instructions for OpenAI Codex working in this repository.
 
-Read this file before making changes anywhere in the solution.
+Read this file before making changes anywhere in the solution. Treat it as the repository map and global operating contract, not as the complete engineering manual.
 
 Directories may contain their own `AGENTS.md`. Root instructions continue to apply throughout the repository unless a more deeply nested `AGENTS.md` overrides a conflicting instruction for its subtree.
 
-## 1. What this solution is
+## 1. Repository map
 
-A modular-monolith backend built with ASP.NET Core and Clean Architecture.
+BookingSystem is a modular-monolith backend built with ASP.NET Core and Clean Architecture.
 
-Bounded contexts live under `src/Modules/<ModuleName>`, each split into `Api / Application / Domain / Infrastructure / Worker / MigrationRunner` projects.
+Bounded contexts live under `src/Modules/<ModuleName>`, normally split into `Api / Application / Domain / Infrastructure / Worker / MigrationRunner` projects.
 
-Today there is one real module, **Identity** (`src/Modules/BookingSystem.Identity`) — accounts, roles, permissions, tokens, avatar storage.
+Current modules are **Identity, Order, Inventory, Payment, and Cart**. Verify a module exists in source before modeling code after reference material.
 
-The CQRS code samples elsewhere in this repo's docs (`Product`, `Category`, `Order`) illustrate the *pattern*, not a second module. Do not look for a Catalog module that does not exist yet.
+| Area | Path | Local guidance |
+| --- | --- | --- |
+| Shared technical primitives | `src/BuildingBlocks/` | `src/BuildingBlocks/AGENTS.md` |
+| Local orchestration | `src/BookingSystem.AppHost/` | `src/BookingSystem.AppHost/AGENTS.md` |
+| Cross-module DTOs & events | `src/Contracts/` | `src/Contracts/AGENTS.md` |
+| Bounded-context modules | `src/Modules/` | `src/Modules/AGENTS.md` |
+| Identity module | `src/Modules/BookingSystem.Identity/` | `src/Modules/BookingSystem.Identity/AGENTS.md` |
+| Tests | `tests/` | `tests/AGENTS.md` |
+| Deployment | `deploy/` | [docs/development/deployment.md](docs/development/deployment.md) |
+| Architecture | repository-wide | [ARCHITECTURE.md](ARCHITECTURE.md) |
+| Runtime / Aspire | repository-wide | [docs/architecture/runtime-orchestration.md](docs/architecture/runtime-orchestration.md) |
+| Verification | repository-wide | [docs/development/verification.md](docs/development/verification.md) |
+| Investigation tools | repository-wide | [docs/development/repository-investigation.md](docs/development/repository-investigation.md) |
+| Plans | repository-wide | [docs/PLANS.md](docs/PLANS.md) |
+| Quality / drift control | repository-wide | [docs/QUALITY.md](docs/QUALITY.md) |
+| Architecture decisions | repository-wide | [docs/decisions/README.md](docs/decisions/README.md) |
 
-| Area                        | Path                                  | Its own AGENTS.md                                                                            |
-| --------------------------- | ------------------------------------- | -------------------------------------------------------------------------------------------- |
-| Shared technical primitives | `src/BuildingBlocks/`                 | [src/BuildingBlocks/AGENTS.md](src/BuildingBlocks/AGENTS.md)                                 |
-| Cross-module DTOs & events  | `src/Contracts/`                      | [src/Contracts/AGENTS.md](src/Contracts/AGENTS.md)                                           |
-| Bounded-context modules     | `src/Modules/`                        | [src/Modules/AGENTS.md](src/Modules/AGENTS.md) — module map + how to add one                 |
-| Identity module             | `src/Modules/BookingSystem.Identity/` | [src/Modules/BookingSystem.Identity/AGENTS.md](src/Modules/BookingSystem.Identity/AGENTS.md) |
-| Gateway/BFF                 | `src/ApiGateway/`                     | none yet — empty scaffold, see §9                                                            |
-| App-level shared code       | `src/Shared/`                         | none yet — empty scaffold, see §9                                                            |
-| Tests                       | `tests/`                              | [tests/AGENTS.md](tests/AGENTS.md)                                                           |
-| Deployment                  | `deploy/`                             | see §8                                                                                       |
+The documentation index and ownership rules live in [docs/README.md](docs/README.md).
 
-## 2. Stack and non-negotiables
+## 2. Global invariants
 
-* .NET 10 (SDK pinned in `global.json`, currently `10.0.301`), C# latest, `Nullable` enabled, `ImplicitUsings` enabled.
-* NuGet versions are centrally managed in `Directory.Packages.props`. Add a new package's version there once; project files only get a bare `<PackageReference Include="…" />` with no `Version` attribute.
-* `EnforceCodeStyleInBuild` is on.
-* `Microsoft.CodeAnalysis.NetAnalyzers`, `Roslynator.Analyzers`, and `StyleCop.Analyzers` run at build time.
-* Naming and formatting conventions are defined in `.editorconfig`.
-* Interfaces use `IPascalCase`.
-* Types, methods, and properties use `PascalCase`.
-* Private fields use `_camelCase`.
-* Async methods end in `Async`.
-* Use file-scoped namespaces.
+These rules apply everywhere unless a deeper `AGENTS.md` explicitly narrows them without violating repository-wide architecture.
 
-A change that only satisfies the IDE but not the build is not valid.
+### Toolchain and code style
 
-### CQRS
+- .NET 10; SDK version is pinned in `global.json`.
+- C# latest, nullable reference types enabled, implicit usings enabled.
+- NuGet versions are centrally managed in `Directory.Packages.props`. Project files use bare `PackageReference` entries without `Version` attributes.
+- Build-time analyzers and `.editorconfig` are the source of truth for naming and formatting.
+- A change that only satisfies the IDE but not the build is not valid.
 
-**This project does not use MediatR.**
+### Dependency boundaries
 
-CQRS runs on the self-made mediator in `BookingSystem.SharedKernel`.
-
-Use:
-
-* `ICommand`
-* `ICommand<TResponse>`
-* `IQuery<TResponse>`
-* `ICommandHandler<…>`
-* `IQueryHandler<…>`
-* `IValidator<TRequest>`
-
-from `SharedKernel.Abstractions.Message`.
-
-Do not add the `MediatR` package or introduce `IRequest` / `IRequestHandler`. They will not wire into the existing mediator.
-
-## 3. Before implementing a request
-
-Translate the user's request into a concrete engineering task before editing code.
-
-For a small, explicit, low-risk task, normalize the request internally and proceed.
-
-For a request that is ambiguous, architectural, destructive, security-sensitive, cross-module, or likely to have multiple materially different implementations:
-
-1. restate it as a concise implementation prompt;
-2. identify scope and non-goals;
-3. state important assumptions;
-4. define acceptance criteria;
-5. identify the expected verification;
-6. present materially different implementation choices when they exist;
-7. ask the user to approve or adjust the plan before implementation.
-
-Do not ask for approval for routine implementation details when the requested behavior and repository conventions already determine the solution.
-
-Do not silently expand the user's scope.
-
-## 4. Investigate efficiently before editing
-
-Do not load broad repository context by default.
-
-Start with the cheapest and most deterministic tool that can answer the question and expand only when needed.
-
-Preferred escalation:
-
-1. known path → open the exact file;
-2. known symbol/text → `rg` / exact search;
-3. unknown relationship or behavior → CodeGraph;
-4. inspect returned symbols/files;
-5. use `rg` to verify related usages;
-6. expand to neighboring projects/modules only when evidence requires it.
-
-### Prefer `rg` for
-
-* exact symbols;
-* filenames;
-* route names;
-* configuration keys;
-* literal usages.
-
-Examples:
-
-```bash
-rg "CreateUserCommand" src/
-rg "IUserRepository" src/
-rg "AddIdentityInfrastructure" src/
-```
-
-### Prefer CodeGraph for
-
-* call paths;
-* callers/callees;
-* dependency relationships;
-* architecture exploration;
-* change/blast-radius analysis;
-* locating behavior when the exact symbol is unknown.
-
-Treat CodeGraph results as discovery candidates, not source-of-truth behavior.
-
-Verify relevant conclusions against the actual source before editing.
-
-For non-trivial changes, inspect the closest existing implementation and its tests before introducing a new pattern.
-
-Do not repeatedly read files already understood.
-
-Do not scan an entire module or repository when targeted retrieval is sufficient.
-
-## 5. The dependency law
+The repository follows this dependency direction:
 
 ```text
 Module.Api             -> Module.Application + Module.Infrastructure + Contracts + BuildingBlocks
@@ -142,271 +58,98 @@ Contracts              -> BuildingBlocks only when needed
 BuildingBlocks         -> other BuildingBlocks projects, one-way, no cycles
 ```
 
-**`Application` must never reference `Infrastructure`.**
+**Application must never reference Infrastructure.**
 
-This is the rule most worth protecting. It keeps handlers testable without a database and keeps persistence swappable.
+Controllers must not inject `DbContext`, `UserManager`, `RoleManager`, repositories, or domain/business services directly. Controllers communicate with Application through `ISender`.
 
-Controllers must never inject:
+See [ARCHITECTURE.md](ARCHITECTURE.md) for the reasoning, request pipeline, and persistence boundaries.
 
-* `DbContext`;
-* `UserManager` / `RoleManager`;
-* repositories;
-* domain/business services directly.
+### CQRS and persistence
 
-Controllers communicate with Application through `ISender`.
+This repository does **not** use MediatR. Do not add `MediatR`, `IRequest`, or `IRequestHandler`.
 
-If you are about to add an Infrastructure `using` to an Application file, or a repository to a controller constructor, stop and re-read `src/Modules/BookingSystem.Identity/AGENTS.md` (§Application / §Api).
+Use the mediator abstractions from `BookingSystem.SharedKernel`, including `ICommand`, `ICommand<TResponse>`, `IQuery<TResponse>`, command/query handlers, and `IValidator<TRequest>`.
 
-There is usually a handler-shaped way to implement the requirement instead.
+Commands use the transaction/unit-of-work pipeline. Handlers and repositories must not call `SaveChangesAsync` when that pipeline owns persistence completion. Queries do not open command transactions.
 
-This rule should also be enforced mechanically by architecture tests. A dependency violation should fail `dotnet test` before reaching code review.
+Unhandled `DomainException`-derived exceptions are translated by `GlobalExceptionHandlingMiddleware`; controllers should not add broad `try/catch` blocks around normal application flow.
 
-## 6. Request pipeline
+## 3. Work protocol
 
-Do not reorder this pipeline without an explicit architectural reason.
+### Discover before editing
 
-```text
-Controller -> ISender.SendAsync(command/query)
-  -> ValidationPipelineBehavior
-  -> LoggingBehavior
-  -> PerformancePipelineBehavior
-  -> TracingPipelineBehavior
-  -> TransactionPipelineBehavior   (commands only, via IUnitOfWork)
-  -> CommandHandler / QueryHandler
-  -> Result / Result<T>
-```
+Use progressive disclosure. Do not load broad repository context by default.
 
-Commands run inside a transaction that commits once after the handler returns.
+1. Read the nearest applicable `AGENTS.md`.
+2. If the path or symbol is known, inspect the exact file or use exact search.
+3. If relationships or behavior are unclear, use CodeGraph when available.
+4. Inspect the closest existing implementation and tests before introducing a new pattern.
+5. Verify important conclusions against source code before editing.
+6. Expand to neighboring modules only when evidence requires it.
 
-Handlers and repositories must **not** call `SaveChangesAsync` when the transaction/unit-of-work pipeline owns persistence completion.
+Detailed tool guidance lives in [docs/development/repository-investigation.md](docs/development/repository-investigation.md).
 
-Queries do not open command transactions.
+### Plan proportionally
 
-Unhandled `DomainException`-derived exceptions are translated to the standard `ApiResponse` error envelope by `GlobalExceptionHandlingMiddleware`.
+For small, explicit, low-risk tasks, normalize the request internally and proceed.
 
-Controllers should let these exceptions bubble instead of adding broad `try/catch` blocks.
+For complex work, create a lightweight plan. Use a checked-in execution plan when the change is long-running, cross-cutting, risky, or likely to require progress/decision tracking. See [docs/PLANS.md](docs/PLANS.md).
 
-## 7. Verification
+Ask for human judgment before implementation when the request is materially ambiguous, destructive, security-sensitive, or presents materially different product/architecture choices. Do not block on approval for routine implementation details already determined by repository conventions.
 
-Verification depth is controlled by the user's prompt.
+Do not silently expand scope.
 
-Do not automatically run the full verification loop for every task.
+## 4. Verification contract
 
-### When the prompt requests the verification loop
+Every code change receives the **minimum relevant feedback loop by default**. Examples:
 
-If the user explicitly asks to:
+- handler/application logic -> targeted unit tests;
+- persistence/repository/migration -> targeted integration checks where practical;
+- controller/API behavior -> targeted API/end-to-end checks where practical;
+- architecture dependency changes -> architecture tests;
+- documentation-only work -> no build/test unless needed.
 
-* run the verification loop;
-* fully verify the change;
-* run regression tests;
-* verify before completion;
-* or otherwise requests full validation;
+During implementation, prefer the smallest useful loop: change -> targeted build/test -> diagnose -> fix -> rerun.
 
-use the full agentic verification loop.
+Run the full repository verification workflow when the user explicitly requests full verification or when the accepted plan identifies it as necessary for a high-risk/cross-cutting change.
 
-### Step 1 — Determine required tests
+The authoritative verification procedure and failure policy are in [docs/development/verification.md](docs/development/verification.md).
 
-Determine the tests required by the change:
+Never report a verification step as successful unless it actually ran successfully. If an environment limitation or pre-existing failure blocks verification, report exactly what was not verified and why.
 
-* handler/application logic → unit tests;
-* persistence/repository/migration → integration tests;
-* controller/API changes → end-to-end/API tests;
-* architecture changes → architecture tests.
+## 5. Repository knowledge is the source of truth
 
-Add or update tests for new or changed behavior where appropriate.
+Prefer repository-local, versioned knowledge over assumptions from memory, chat history, or external reference material.
 
-For bug fixes, prefer reproducing the bug with an existing or new regression test before implementing the fix when practical.
+- Architecture and dependency rules -> [ARCHITECTURE.md](ARCHITECTURE.md)
+- Runtime topology / Aspire / observability boundaries -> [docs/architecture/runtime-orchestration.md](docs/architecture/runtime-orchestration.md)
+- Verification -> [docs/development/verification.md](docs/development/verification.md)
+- Deployment and environment handling -> [docs/development/deployment.md](docs/development/deployment.md)
+- Plans and execution history -> [docs/PLANS.md](docs/PLANS.md) and `docs/exec-plans/`
+- Durable architecture decisions -> `docs/decisions/`
+- Quality principles and mechanical-enforcement targets -> [docs/QUALITY.md](docs/QUALITY.md)
+- Sample/reference material -> `docs/references/`; verify it against current source before treating it as implementation truth.
 
-### Step 2 — Use a fast inner loop
+When code and documentation disagree, verify actual behavior, then update stale documentation as part of the change when appropriate.
 
-During implementation, use the smallest relevant feedback loop:
+## 6. Skills
 
-```text
-implement
-    ↓
-build / targeted test
-    ↓
-failure?
-    ├─ yes -> diagnose -> fix -> rerun targeted test
-    └─ no  -> continue
-```
+Repository-specific reusable Codex workflows live under `.codex/skills/`.
 
-Do not repeatedly run the complete regression suite while diagnosing a localized failure when a targeted test provides sufficient feedback.
+Use a skill when the task matches its purpose. Skills define repeatable procedures; they do not replace repository-wide invariants or architecture documentation.
 
-### Step 3 — Run full verification
+Do not duplicate large sections of this file inside skills. Skills should point to the relevant repository sources of truth and add only task-specific workflow.
 
-Once implementation is stable, run from the repository root:
+See `.codex/skills/SKILLS-PLAN.md` when present.
 
-```bash
-./scripts/verify.sh
-```
+## 7. Evolving the harness
 
-The full verification script runs:
+When an agent repeatedly fails for the same reason, do not solve it only with a larger prompt. Identify the missing capability and prefer, in order:
 
-1. restore + build;
-2. `dotnet format --verify-no-changes`;
-3. unit tests;
-4. architecture tests;
-5. integration tests;
-6. end-to-end/API tests.
+1. clearer repository-local documentation;
+2. a reusable skill or script for a repeatable procedure;
+3. a test, analyzer, linter, or CI check for an invariant that can be enforced mechanically.
 
-Integration tests may require Docker and Testcontainers.
+Keep hard boundaries strict and allow implementation freedom inside them.
 
-### Step 4 — Handle failures
-
-If a verification stage fails:
-
-1. diagnose the root cause;
-2. make the smallest corrective change;
-3. rerun the targeted failing test/stage;
-4. repeat until green;
-5. rerun the full `./scripts/verify.sh` after the implementation is stable.
-
-Do not:
-
-* disable valid tests;
-* delete valid tests;
-* weaken assertions;
-* change expected values merely to hide a defect.
-
-Only report full verification success when `./scripts/verify.sh` actually exits successfully.
-
-If verification cannot complete because of an environment limitation or a pre-existing failure, report exactly what was not verified and why.
-
-### When the prompt does not request the verification loop
-
-Do not run the full `./scripts/verify.sh` automatically.
-
-Use only the minimum checks necessary to safely perform the requested task.
-
-Examples:
-
-```text
-documentation-only change
--> no build/test unless requested
-
-configuration inspection
--> no test run unless needed
-
-localized code edit
--> targeted build/test when useful
-
-investigation/planning task
--> do not modify code or run regression tests unless requested
-```
-
-Do not turn every coding task into a full verification run.
-
-The user's prompt determines whether full verification is required.
-
-## 8. Deployment and environment files
-
-`deploy/compose/` holds local Docker Compose stacks:
-
-* `docker-compose.yaml`
-* `docker-compose.override.yaml`
-* `docker-compose.infrastructure.yaml`
-
-`deploy/env/` holds environment configuration.
-
-Treat `.prod.env` as read-only unless the user explicitly asks to change it.
-
-Do not "fix" production configuration as a side effect of an unrelated feature task.
-
-If `.prod.env` contains real credentials or secrets, it must not be committed.
-
-`docs/references/` contains sample/reference material and is not part of the build.
-
-Do not treat code found there as the current implementation unless verified against source.
-
-## 9. When `ApiGateway/` or `Shared/` get their first real project
-
-Both are intentionally empty scaffolds today.
-
-When either gets its first real project, give it its own `AGENTS.md`.
-
-For `Shared/`, define rules based on its actual responsibilities.
-
-For `ApiGateway/`, define gateway/BFF-specific concerns such as:
-
-* routing;
-* aggregation;
-* authentication forwarding;
-* downstream communication.
-
-Do not invent detailed rules for an empty folder now.
-
-Add scoped instructions when there is real content to govern.
-
-## 10. Codex Skills
-
-Repository-specific reusable Codex workflows live under:
-
-```text
-.codex/skills/
-```
-
-Skills complement this file; they do not replace repository-wide rules.
-
-Use a relevant skill when the task matches its purpose.
-
-Examples include:
-
-* adding a CQRS feature;
-* running the verification workflow;
-* creating a migration;
-* reviewing an EF Core query.
-
-`AGENTS.md` defines constraints that always apply.
-
-Skills define reusable procedures for specific tasks.
-
-Do not duplicate large portions of this file inside a skill.
-
-A skill should reference repository conventions and contain only the additional workflow required for its task.
-
-See `.codex/skills/SKILLS-PLAN.md` for the current skill plan when present.
-
-<!-- CODEGRAPH_START -->
-
-## CodeGraph
-
-When a `.codegraph/` directory exists, CodeGraph is available for structural repository investigation.
-
-Prefer CodeGraph for:
-
-* call paths;
-* callers/callees;
-* dependency relationships;
-* architecture exploration;
-* blast-radius analysis;
-* locating behavior when the exact symbol is unknown.
-
-Prefer `rg` for:
-
-* known symbols;
-* exact strings;
-* filenames;
-* routes;
-* configuration keys;
-* literal usages.
-
-MCP tool when available:
-
-```text
-codegraph_explore
-```
-
-Shell fallback:
-
-```bash
-codegraph explore "<symbol names or question>"
-```
-
-Treat CodeGraph output as discovery context.
-
-Verify important conclusions against the actual source before editing.
-
-If `.codegraph/` does not exist, skip CodeGraph.
-
-<!-- CODEGRAPH_END -->
+When `src/ApiGateway/` or `src/Shared/` receives its first real project, add scoped `AGENTS.md` guidance based on its actual responsibilities instead of inventing detailed rules in advance.

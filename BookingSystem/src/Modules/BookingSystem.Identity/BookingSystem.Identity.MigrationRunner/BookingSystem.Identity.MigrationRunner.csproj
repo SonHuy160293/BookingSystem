@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <ItemGroup>
+        <ProjectReference Include="../../../BuildingBlocks/BookingSystem.Observability/BookingSystem.Observability.csproj" />
         <ProjectReference Include="..\BookingSystem.Identity.Infrastructure\BookingSystem.Identity.Infrastructure.csproj" />
     </ItemGroup>
 
@@ -9,6 +10,7 @@
         <PackageReference Include="Microsoft.Extensions.Configuration.Json" />
         <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" />
         <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+        <PackageReference Include="Microsoft.Extensions.Hosting" />
         <PackageReference Include="Serilog.Enrichers.Environment" />
         <PackageReference Include="Serilog.Enrichers.Thread" />
         <PackageReference Include="Serilog.Extensions.Hosting" />

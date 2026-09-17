@@ -15,10 +15,15 @@
     <File Path="Directory.Packages.props" />
   </Folder>
   <Folder Name="/src/" />
+  <Folder Name="/src/BookingSystem.AppHost/">
+    <Project Path="src/BookingSystem.AppHost/BookingSystem.AppHost.csproj" />
+  </Folder>
   <Folder Name="/src/BuildingBlocks/">
+    <Project Path="src/BuildingBlocks/BookingSystem.Observability/BookingSystem.Observability.csproj" />
     <Project Path="src/BuildingBlocks/BookingSystem.AspNetCore/BookingSystem.AspNetCore.csproj" />
     <Project Path="src/BuildingBlocks/BookingSystem.EntityFrameworkCore/BookingSystem.EntityFrameworkCore.csproj" />
     <Project Path="src/BuildingBlocks/BookingSystem.SharedKernel/BookingSystem.SharedKernel.csproj" />
+    <Project Path="src/BuildingBlocks/BookingSystem.ServiceDefaults/BookingSystem.ServiceDefaults.csproj" />
   </Folder>
   <Folder Name="/src/Contracts/" />
   <Folder Name="/src/Modules/" />
@@ -29,5 +34,42 @@
     <Project Path="src/Modules/BookingSystem.Identity/BookingSystem.Identity.Infrastructure/BookingSystem.Identity.Infrastructure.csproj" />
     <Project Path="src/Modules/BookingSystem.Identity/BookingSystem.Identity.MigrationRunner/BookingSystem.Identity.MigrationRunner.csproj" />
   </Folder>
+  <Folder Name="/src/Modules/BookingSystem.Order/">
+    <Project Path="src/Modules/BookingSystem.Order/BookingSystem.Order.API/BookingSystem.Order.API.csproj" />
+    <Project Path="src/Modules/BookingSystem.Order/BookingSystem.Order.Application/BookingSystem.Order.Application.csproj" />
+    <Project Path="src/Modules/BookingSystem.Order/BookingSystem.Order.Domain/BookingSystem.Order.Domain.csproj" />
+    <Project Path="src/Modules/BookingSystem.Order/BookingSystem.Order.Infrastructure/BookingSystem.Order.Infrastructure.csproj" />
+    <Project Path="src/Modules/BookingSystem.Order/BookingSystem.Order.MigrationRunner/BookingSystem.Order.MigrationRunner.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/BookingSystem.Inventory/">
+    <Project Path="src/Modules/BookingSystem.Inventory/BookingSystem.Inventory.API/BookingSystem.Inventory.API.csproj" />
+    <Project Path="src/Modules/BookingSystem.Inventory/BookingSystem.Inventory.Application/BookingSystem.Inventory.Application.csproj" />
+    <Project Path="src/Modules/BookingSystem.Inventory/BookingSystem.Inventory.Domain/BookingSystem.Inventory.Domain.csproj" />
+    <Project Path="src/Modules/BookingSystem.Inventory/BookingSystem.Inventory.Infrastructure/BookingSystem.Inventory.Infrastructure.csproj" />
+    <Project Path="src/Modules/BookingSystem.Inventory/BookingSystem.Inventory.MigrationRunner/BookingSystem.Inventory.MigrationRunner.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/BookingSystem.Payment/">
+    <Project Path="src/Modules/BookingSystem.Payment/BookingSystem.Payment.API/BookingSystem.Payment.API.csproj" />
+    <Project Path="src/Modules/BookingSystem.Payment/BookingSystem.Payment.Application/BookingSystem.Payment.Application.csproj" />
+    <Project Path="src/Modules/BookingSystem.Payment/BookingSystem.Payment.Domain/BookingSystem.Payment.Domain.csproj" />
+    <Project Path="src/Modules/BookingSystem.Payment/BookingSystem.Payment.Infrastructure/BookingSystem.Payment.Infrastructure.csproj" />
+    <Project Path="src/Modules/BookingSystem.Payment/BookingSystem.Payment.MigrationRunner/BookingSystem.Payment.MigrationRunner.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/BookingSystem.Cart/">
+    <Project Path="src/Modules/BookingSystem.Cart/BookingSystem.Cart.API/BookingSystem.Cart.API.csproj" />
+    <Project Path="src/Modules/BookingSystem.Cart/BookingSystem.Cart.Application/BookingSystem.Cart.Application.csproj" />
+    <Project Path="src/Modules/BookingSystem.Cart/BookingSystem.Cart.Domain/BookingSystem.Cart.Domain.csproj" />
+    <Project Path="src/Modules/BookingSystem.Cart/BookingSystem.Cart.Infrastructure/BookingSystem.Cart.Infrastructure.csproj" />
+    <Project Path="src/Modules/BookingSystem.Cart/BookingSystem.Cart.MigrationRunner/BookingSystem.Cart.MigrationRunner.csproj" />
+  </Folder>
   <Folder Name="/tests/" />
+  <Folder Name="/tests/BookingSystem.Observability.Tests/">
+    <Project Path="tests/BookingSystem.Observability.Tests/BookingSystem.Observability.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tests/BookingSystem.ArchitectureTests/">
+    <Project Path="tests/BookingSystem.ArchitectureTests/BookingSystem.ArchitectureTests.csproj" />
+  </Folder>
+  <Folder Name="/tests/BookingSystem.SharedKernel.UnitTests/">
+    <Project Path="tests/BookingSystem.SharedKernel.UnitTests/BookingSystem.SharedKernel.UnitTests.csproj" />
+  </Folder>
 </Solution>

@@ -1,0 +1,23 @@
+<Project Sdk="Aspire.AppHost.Sdk/13.5.4">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsAspireHost>true</IsAspireHost>
+    <UserSecretsId>BookingSystem.AppHost-3c5ffb9e-567d-4e3e-a72b-c4c51829215f</UserSecretsId>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Aspire.Hosting.AppHost" />
+    <PackageReference Include="Aspire.Hosting.SqlServer" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Modules\BookingSystem.Identity\BookingSystem.Identity.API\BookingSystem.Identity.API.csproj" />
+    <ProjectReference Include="..\Modules\BookingSystem.Identity\BookingSystem.Identity.MigrationRunner\BookingSystem.Identity.MigrationRunner.csproj" />
+    <ProjectReference Include="..\Modules\BookingSystem.Order\BookingSystem.Order.API\BookingSystem.Order.API.csproj" />
+    <ProjectReference Include="..\Modules\BookingSystem.Order\BookingSystem.Order.MigrationRunner\BookingSystem.Order.MigrationRunner.csproj" />
+    <ProjectReference Include="..\Modules\BookingSystem.Inventory\BookingSystem.Inventory.API\BookingSystem.Inventory.API.csproj" />
+    <ProjectReference Include="..\Modules\BookingSystem.Inventory\BookingSystem.Inventory.MigrationRunner\BookingSystem.Inventory.MigrationRunner.csproj" />
+    <ProjectReference Include="..\Modules\BookingSystem.Payment\BookingSystem.Payment.API\BookingSystem.Payment.API.csproj" />
+    <ProjectReference Include="..\Modules\BookingSystem.Payment\BookingSystem.Payment.MigrationRunner\BookingSystem.Payment.MigrationRunner.csproj" />
+    <ProjectReference Include="..\Modules\BookingSystem.Cart\BookingSystem.Cart.API\BookingSystem.Cart.API.csproj" />
+    <ProjectReference Include="..\Modules\BookingSystem.Cart\BookingSystem.Cart.MigrationRunner\BookingSystem.Cart.MigrationRunner.csproj" />
+  </ItemGroup>
+</Project>

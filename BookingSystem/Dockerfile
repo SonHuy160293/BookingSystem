@@ -5,6 +5,8 @@ COPY global.json ./
 COPY Directory.Build.props ./
 COPY Directory.Packages.props ./
 COPY BookingSystem.slnx ./
+COPY src/BuildingBlocks/BookingSystem.Observability/BookingSystem.Observability.csproj src/BuildingBlocks/BookingSystem.Observability/
+COPY src/BuildingBlocks/BookingSystem.ServiceDefaults/BookingSystem.ServiceDefaults.csproj src/BuildingBlocks/BookingSystem.ServiceDefaults/
 COPY src/BuildingBlocks/BookingSystem.AspNetCore/BookingSystem.AspNetCore.csproj src/BuildingBlocks/BookingSystem.AspNetCore/
 COPY src/BuildingBlocks/BookingSystem.EntityFrameworkCore/BookingSystem.EntityFrameworkCore.csproj src/BuildingBlocks/BookingSystem.EntityFrameworkCore/
 COPY src/BuildingBlocks/BookingSystem.SharedKernel/BookingSystem.SharedKernel.csproj src/BuildingBlocks/BookingSystem.SharedKernel/
@@ -32,7 +34,7 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
     CMD curl -f http://localhost:8080/health/ready || exit 1
 ENTRYPOINT ["dotnet", "BookingSystem.Identity.API.dll"]
 
-FROM mcr.microsoft.com/dotnet/runtime:10.0 AS final-migration
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final-migration
 WORKDIR /app
 COPY --from=build /app/migration .
 ENTRYPOINT ["dotnet", "BookingSystem.Identity.MigrationRunner.dll"]

@@ -9,6 +9,7 @@
     <ItemGroup>
       <ProjectReference Include="..\..\..\BuildingBlocks\BookingSystem.AspNetCore\BookingSystem.AspNetCore.csproj" />
       <ProjectReference Include="..\..\..\BuildingBlocks\BookingSystem.SharedKernel\BookingSystem.SharedKernel.csproj" />
+      <ProjectReference Include="..\..\..\BuildingBlocks\BookingSystem.ServiceDefaults\BookingSystem.ServiceDefaults.csproj" />
       <ProjectReference Include="..\BookingSystem.Identity.Application\BookingSystem.Identity.Application.csproj" />
       <ProjectReference Include="..\BookingSystem.Identity.Infrastructure\BookingSystem.Identity.Infrastructure.csproj" />
     </ItemGroup>
