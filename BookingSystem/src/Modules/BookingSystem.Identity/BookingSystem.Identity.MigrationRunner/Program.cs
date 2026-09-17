@@ -1,16 +1,21 @@
+using System.Globalization;
 using BookingSystem.Identity.Infrastructure.DependencyInjection;
 using BookingSystem.Identity.Infrastructure.Persistence;
+using BookingSystem.Observability;
 using Company.Project.Infrastructure.Seed;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Serilog;
-using System.Globalization;
 
 Log.Logger = new LoggerConfiguration()
     .WriteTo.Console(formatProvider: CultureInfo.InvariantCulture)
     .CreateLogger();
+
+IHost? host = null;
 
 try
 {
@@ -26,13 +31,27 @@ try
         .AddEnvironmentVariables()
         .Build();
 
-    Log.Logger = new LoggerConfiguration()
+    var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings
+    {
+        Args = args,
+        EnvironmentName = environmentName,
+        ContentRootPath = AppContext.BaseDirectory
+    });
+    builder.Configuration.AddConfiguration(configuration);
+    builder.Logging.ClearProviders();
+    builder.AddBookingSystemObservability();
+    builder.Services.AddInfrastructure(configuration);
+    builder.Services.AddSerilog(
+        (services, logger) => logger
         .Enrich.WithProperty("Application", "BookingSystem.Identity.MigrationRunner")
         .ReadFrom.Configuration(configuration)
+        .ReadFrom.Services(services)
         .Enrich.FromLogContext()
         .Enrich.WithMachineName()
-        .Enrich.WithThreadId()
-        .CreateLogger();
+        .Enrich.WithThreadId(),
+        writeToProviders: true);
+    host = builder.Build();
+    await host.StartAsync();
 
     Log.Information(
         "BookingSystem.Identity MigrationRunner configured for {Environment}",
@@ -41,11 +60,7 @@ try
     var seedDatabase = configuration.GetValue<bool>("Database:Seed");
     Log.Information("Database migration options: Seed={Seed}", seedDatabase);
 
-    await using var services = new ServiceCollection()
-        .AddInfrastructure(configuration)
-        .BuildServiceProvider();
-
-    await using var scope = services.CreateAsyncScope();
+    await using var scope = host.Services.CreateAsyncScope();
     var dbContext = scope.ServiceProvider.GetRequiredService<BookingSystemIdentityDbContext>();
 
     Log.Information("Applying database migrations");
@@ -72,7 +87,13 @@ catch (Exception exception)
 }
 finally
 {
+    if (host is not null)
+    {
+        await host.StopAsync();
+    }
+
     Log.CloseAndFlush();
+    host?.Dispose();
 }
 
 static string GetEnvironmentName()

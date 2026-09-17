@@ -5,6 +5,8 @@ using BookingSystem.AspNetCore.Options;
 using BookingSystem.Identity.API.Health;
 using BookingSystem.Identity.Application.DependencyInjection;
 using BookingSystem.Identity.Infrastructure.DependencyInjection;
+using BookingSystem.SharedKernel.Security;
+using BookingSystem.ServiceDefaults;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
@@ -24,6 +26,8 @@ try
     Log.Information("Starting Company.Project API");
 
     var builder = WebApplication.CreateBuilder(args);
+    builder.Logging.ClearProviders();
+    builder.AddServiceDefaults();
 
     builder.AddConfiguredSerilog();
 
@@ -180,6 +184,7 @@ try
     });
 
     app.MapControllers();
+    app.MapDefaultEndpoints();
 
     await app.RunAsync();
 

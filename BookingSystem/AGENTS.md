@@ -12,13 +12,14 @@ A modular-monolith backend built with ASP.NET Core and Clean Architecture.
 
 Bounded contexts live under `src/Modules/<ModuleName>`, each split into `Api / Application / Domain / Infrastructure / Worker / MigrationRunner` projects.
 
-Today there is one real module, **Identity** (`src/Modules/BookingSystem.Identity`) — accounts, roles, permissions, tokens, avatar storage.
+Current modules are **Identity, Order, Inventory, Payment, and Cart** (see `src/Modules/AGENTS.md`).
 
-The CQRS code samples elsewhere in this repo's docs (`Product`, `Category`, `Order`) illustrate the *pattern*, not a second module. Do not look for a Catalog module that does not exist yet.
+CQRS examples in reference material illustrate patterns; verify a module exists in source before modeling it.
 
 | Area                        | Path                                  | Its own AGENTS.md                                                                            |
 | --------------------------- | ------------------------------------- | -------------------------------------------------------------------------------------------- |
 | Shared technical primitives | `src/BuildingBlocks/`                 | [src/BuildingBlocks/AGENTS.md](src/BuildingBlocks/AGENTS.md)                                 |
+| Local orchestration         | `src/BookingSystem.AppHost/`           | [src/BookingSystem.AppHost/AGENTS.md](src/BookingSystem.AppHost/AGENTS.md)                     |
 | Cross-module DTOs & events  | `src/Contracts/`                      | [src/Contracts/AGENTS.md](src/Contracts/AGENTS.md)                                           |
 | Bounded-context modules     | `src/Modules/`                        | [src/Modules/AGENTS.md](src/Modules/AGENTS.md) — module map + how to add one                 |
 | Identity module             | `src/Modules/BookingSystem.Identity/` | [src/Modules/BookingSystem.Identity/AGENTS.md](src/Modules/BookingSystem.Identity/AGENTS.md) |
@@ -367,6 +368,18 @@ A skill should reference repository conventions and contain only the additional 
 
 See `.codex/skills/SKILLS-PLAN.md` for the current skill plan when present.
 
+## 11. .NET Aspire and local orchestration
+
+`src/BookingSystem.AppHost/` defines the local runtime topology: one persistent SQL Server resource, the actual module databases, each module's MigrationRunner, and each API. It is a composition root, not a business layer. Start it with `dotnet run --project src/BookingSystem.AppHost`. Aspire uses the container runtime for SQL Server and supplies local observability through its Dashboard.
+
+`src/BuildingBlocks/BookingSystem.ServiceDefaults/` owns development health endpoints, service discovery, and outgoing `HttpClient` resilience, and delegates telemetry registration to `src/BuildingBlocks/BookingSystem.Observability/`. Observability owns reusable host-only OpenTelemetry resources, instrumentation, OTLP export, and privacy filters. Keep domain models, `Result<T>`, DTOs, commands, queries, repositories, and business services out of it. Aspire package versions belong in `Directory.Packages.props`; the AppHost SDK version is declared in its SDK reference.
+
+Domain, Application, and Contracts must not reference Aspire, ServiceDefaults, or Observability. Infrastructure must not reference AppHost. Executable API and Worker projects may reference ServiceDefaults; AppHost may reference executable projects. Do not add resources merely because Aspire supports them. When a real dependency is introduced, model it in AppHost and wire only its actual consumers.
+
+MigrationRunner remains the owner of EF Core schema migrations. AppHost starts the database and waits for each runner to complete successfully before starting its API. Do not move migrations into API startup. `deploy/compose/` remains a supported path; changing it is a separate deployment decision.
+
+Use `ILogger`, `ActivitySource`, and OpenTelemetry for correlated logs, traces, and metrics. Do not create a separate tracing framework or emit credentials, tokens, passwords, or raw personal data into telemetry. The CQRS pipeline order in §6 remains unchanged.
+
 <!-- CODEGRAPH_START -->
 
 ## CodeGraph
@@ -409,4 +422,5 @@ Verify important conclusions against the actual source before editing.
 
 If `.codegraph/` does not exist, skip CodeGraph.
 
+If there is no `.codegraph/` directory, skip CodeGraph entirely — indexing is the user's decision.
 <!-- CODEGRAPH_END -->

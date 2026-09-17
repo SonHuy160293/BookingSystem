@@ -1,12 +1,13 @@
 using BookingSystem.EntityFrameworkCore.Repositories;
 using BookingSystem.Identity.Application.Abstractions.Persistence;
 using BookingSystem.SharedKernel.Abstractions.Domain;
+using BookingSystem.SharedKernel.Abstractions.Persistence;
 using BookingSystem.SharedKernel.Exceptions;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 namespace BookingSystem.Identity.Infrastructure.Persistence.Core;
 
-public abstract class RepositoryBase<TEntity> : EfRepositoryBase<TEntity, Guid, BookingSystemIdentityDbContext>, IRepositoryBase<TEntity>, IDeletableRepository<TEntity>
+public abstract class RepositoryBase<TEntity> : EfRepositoryBase<TEntity, Guid, BookingSystemIdentityDbContext>, IRepositoryBase<TEntity, Guid>, IDeletableRepository<TEntity, Guid>
     where TEntity : class, IEntity<Guid>
 {
     protected RepositoryBase(BookingSystemIdentityDbContext dbContext)

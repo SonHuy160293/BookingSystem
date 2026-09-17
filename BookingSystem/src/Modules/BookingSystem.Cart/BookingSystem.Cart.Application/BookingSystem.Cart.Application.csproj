@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <ItemGroup>
+        <ProjectReference Include="..\..\..\BuildingBlocks\BookingSystem.SharedKernel\BookingSystem.SharedKernel.csproj" />
+        <ProjectReference Include="..\BookingSystem.Cart.Domain\BookingSystem.Cart.Domain.csproj" />
+    </ItemGroup>
+</Project>

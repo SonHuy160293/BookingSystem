@@ -15,6 +15,7 @@ BookingSystem.SharedKernel
     -> domain-safe primitives
     -> pipeline behaviors
     -> IUnitOfWork
+    -> framework-neutral repository contracts
     -> common exceptions
 
 BookingSystem.AspNetCore
@@ -27,6 +28,13 @@ BookingSystem.EntityFrameworkCore
     -> reusable EF Core infrastructure
     -> repository base
     -> SaveChanges interceptors
+
+BookingSystem.ServiceDefaults
+    -> host-level health, service discovery, and HTTP resilience
+    -> delegates telemetry registration to Observability
+
+BookingSystem.Observability
+    -> reusable host-only OpenTelemetry resources, export, instrumentation, and privacy filters
 ```
 
 Do not place module-specific business logic here.
@@ -49,6 +57,7 @@ Domain must not depend on application-oriented concepts such as:
 * handlers;
 * validators;
 * `IUnitOfWork`;
+* repository contracts;
 * mediator implementation;
 * pipeline behaviors;
 * paging/API response models.
@@ -80,6 +89,14 @@ Do not add:
 
 Those belong to the owning module's Infrastructure project.
 
+## ServiceDefaults
+
+Keep this project infrastructure-only. It must not depend on modules or contain domain models, CQRS messages, repositories, DTOs, `Result<T>`, or business logic. Only executable hosts reference it.
+
+## Observability
+
+Only executable hosts and ServiceDefaults reference this project. Keep SDK registration, export options, resources, instrumentation, and privacy filters here; keep CQRS activities and meters in SharedKernel using framework-neutral .NET diagnostics. Register one OTLP logging provider, with Serilog forwarding to it. Do not add a parallel centralized log sink or make application readiness depend on telemetry availability.
+
 ## Adding shared abstractions
 
 Before adding something to BuildingBlocks, verify that:
@@ -92,6 +109,10 @@ Before adding something to BuildingBlocks, verify that:
 Do not create abstractions for hypothetical future reuse.
 
 Prefer keeping code inside a module until reuse becomes real.
+
+Repository interfaces that describe framework-neutral application persistence ports belong in
+`BookingSystem.SharedKernel.Abstractions.Persistence`. EF Core implementations and module-specific
+repository behavior remain in the appropriate Infrastructure project.
 
 ## Shared changes
 

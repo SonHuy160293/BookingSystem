@@ -1,6 +1,7 @@
 using BookingSystem.Identity.Application.Abstractions.Persistence;
 using BookingSystem.Identity.Application.Contracts.Users;
 using BookingSystem.Identity.Domain.Models;
+using BookingSystem.SharedKernel.Abstractions.Persistence;
 
 namespace BookingSystem.Identity.Application.Abstractions.Repositories;
 
