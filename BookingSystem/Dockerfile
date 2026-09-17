@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build-base
 WORKDIR /src
 
 COPY global.json ./
@@ -16,13 +16,20 @@ COPY src/Modules/BookingSystem.Identity/BookingSystem.Identity.Domain/BookingSys
 COPY src/Modules/BookingSystem.Identity/BookingSystem.Identity.Infrastructure/BookingSystem.Identity.Infrastructure.csproj src/Modules/BookingSystem.Identity/BookingSystem.Identity.Infrastructure/
 COPY src/Modules/BookingSystem.Identity/BookingSystem.Identity.MigrationRunner/BookingSystem.Identity.MigrationRunner.csproj src/Modules/BookingSystem.Identity/BookingSystem.Identity.MigrationRunner/
 
+COPY src/Modules/BookingSystem.Cinema/BookingSystem.Cinema.API/BookingSystem.Cinema.API.csproj src/Modules/BookingSystem.Cinema/BookingSystem.Cinema.API/
+COPY src/Modules/BookingSystem.Cinema/BookingSystem.Cinema.Application/BookingSystem.Cinema.Application.csproj src/Modules/BookingSystem.Cinema/BookingSystem.Cinema.Application/
+COPY src/Modules/BookingSystem.Cinema/BookingSystem.Cinema.Domain/BookingSystem.Cinema.Domain.csproj src/Modules/BookingSystem.Cinema/BookingSystem.Cinema.Domain/
+COPY src/Modules/BookingSystem.Cinema/BookingSystem.Cinema.Infrastructure/BookingSystem.Cinema.Infrastructure.csproj src/Modules/BookingSystem.Cinema/BookingSystem.Cinema.Infrastructure/
+COPY src/Modules/BookingSystem.Cinema/BookingSystem.Cinema.MigrationRunner/BookingSystem.Cinema.MigrationRunner.csproj src/Modules/BookingSystem.Cinema/BookingSystem.Cinema.MigrationRunner/
+
+FROM build-base AS build
 RUN dotnet restore src/Modules/BookingSystem.Identity/BookingSystem.Identity.API/BookingSystem.Identity.API.csproj
 RUN dotnet restore src/Modules/BookingSystem.Identity/BookingSystem.Identity.MigrationRunner/BookingSystem.Identity.MigrationRunner.csproj
 COPY . .
 RUN dotnet publish src/Modules/BookingSystem.Identity/BookingSystem.Identity.API/BookingSystem.Identity.API.csproj -c Release -o /app/api --no-restore
 RUN dotnet publish src/Modules/BookingSystem.Identity/BookingSystem.Identity.MigrationRunner/BookingSystem.Identity.MigrationRunner.csproj -c Release -o /app/migration --no-restore
 
-FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final-api
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final-identity-api
 WORKDIR /app
 RUN apt-get update \
     && apt-get install -y --no-install-recommends curl \
@@ -34,7 +41,38 @@ HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
     CMD curl -f http://localhost:8080/health/ready || exit 1
 ENTRYPOINT ["dotnet", "BookingSystem.Identity.API.dll"]
 
-FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final-migration
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final-identity-migration
 WORKDIR /app
 COPY --from=build /app/migration .
 ENTRYPOINT ["dotnet", "BookingSystem.Identity.MigrationRunner.dll"]
+
+FROM build-base AS cinema-build
+RUN dotnet restore src/Modules/BookingSystem.Cinema/BookingSystem.Cinema.API/BookingSystem.Cinema.API.csproj
+RUN dotnet restore src/Modules/BookingSystem.Cinema/BookingSystem.Cinema.MigrationRunner/BookingSystem.Cinema.MigrationRunner.csproj
+COPY . .
+RUN dotnet publish src/Modules/BookingSystem.Cinema/BookingSystem.Cinema.API/BookingSystem.Cinema.API.csproj -c Release -o /app/cinema-api --no-restore
+RUN dotnet publish src/Modules/BookingSystem.Cinema/BookingSystem.Cinema.MigrationRunner/BookingSystem.Cinema.MigrationRunner.csproj -c Release -o /app/cinema-migration --no-restore
+
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final-cinema-api
+WORKDIR /app
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl libgssapi-krb5-2 \
+    && rm -rf /var/lib/apt/lists/*
+COPY --from=cinema-build /app/cinema-api .
+ENV ASPNETCORE_URLS=http://+:8080
+EXPOSE 8080
+HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
+    CMD curl -f http://localhost:8080/health/ready || exit 1
+ENTRYPOINT ["dotnet", "BookingSystem.Cinema.API.dll"]
+
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final-cinema-migration
+WORKDIR /app
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends libgssapi-krb5-2 \
+    && rm -rf /var/lib/apt/lists/*
+COPY --from=cinema-build /app/cinema-migration .
+ENTRYPOINT ["dotnet", "BookingSystem.Cinema.MigrationRunner.dll"]
+
+# Preserve the previous Identity image targets for existing build commands.
+FROM final-identity-api AS final-api
+FROM final-identity-migration AS final-migration

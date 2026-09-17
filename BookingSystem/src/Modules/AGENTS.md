@@ -12,11 +12,11 @@ Every bounded context lives here as its own module.
 | -------- | ------------------------- | --------------------------------------------------------- | -------------------------------------------------------------------- |
 | Identity | `BookingSystem.Identity/` | Accounts, roles, permissions, auth/tokens, avatar storage | [BookingSystem.Identity/AGENTS.md](BookingSystem.Identity/AGENTS.md) |
 | Order | `BookingSystem.Order/` | Order capabilities | [BookingSystem.Order/AGENTS.md](BookingSystem.Order/AGENTS.md) |
-| Inventory | `BookingSystem.Inventory/` | Inventory capabilities | [BookingSystem.Inventory/AGENTS.md](BookingSystem.Inventory/AGENTS.md) |
+| Cinema | `BookingSystem.Cinema/` | Cinema capabilities | [BookingSystem.Cinema/AGENTS.md](BookingSystem.Cinema/AGENTS.md) |
 | Payment | `BookingSystem.Payment/` | Payment capabilities | [BookingSystem.Payment/AGENTS.md](BookingSystem.Payment/AGENTS.md) |
 | Cart | `BookingSystem.Cart/` | Cart capabilities | [BookingSystem.Cart/AGENTS.md](BookingSystem.Cart/AGENTS.md) |
 
-Identity, Order, Inventory, Payment, and Cart are the current modules.
+Identity, Order, Cinema, Payment, and Cart are the current modules.
 
 Do not assume additional modules such as Catalog exist because documentation uses other domains as CQRS examples. Those examples are illustrative unless the module appears in the table above.
 

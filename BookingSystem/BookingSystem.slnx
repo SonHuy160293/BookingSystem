@@ -19,11 +19,11 @@
     <Project Path="src/BookingSystem.AppHost/BookingSystem.AppHost.csproj" />
   </Folder>
   <Folder Name="/src/BuildingBlocks/">
-    <Project Path="src/BuildingBlocks/BookingSystem.Observability/BookingSystem.Observability.csproj" />
     <Project Path="src/BuildingBlocks/BookingSystem.AspNetCore/BookingSystem.AspNetCore.csproj" />
     <Project Path="src/BuildingBlocks/BookingSystem.EntityFrameworkCore/BookingSystem.EntityFrameworkCore.csproj" />
-    <Project Path="src/BuildingBlocks/BookingSystem.SharedKernel/BookingSystem.SharedKernel.csproj" />
+    <Project Path="src/BuildingBlocks/BookingSystem.Observability/BookingSystem.Observability.csproj" />
     <Project Path="src/BuildingBlocks/BookingSystem.ServiceDefaults/BookingSystem.ServiceDefaults.csproj" />
+    <Project Path="src/BuildingBlocks/BookingSystem.SharedKernel/BookingSystem.SharedKernel.csproj" />
   </Folder>
   <Folder Name="/src/Contracts/" />
   <Folder Name="/src/Modules/" />
@@ -41,12 +41,12 @@
     <Project Path="src/Modules/BookingSystem.Order/BookingSystem.Order.Infrastructure/BookingSystem.Order.Infrastructure.csproj" />
     <Project Path="src/Modules/BookingSystem.Order/BookingSystem.Order.MigrationRunner/BookingSystem.Order.MigrationRunner.csproj" />
   </Folder>
-  <Folder Name="/src/Modules/BookingSystem.Inventory/">
-    <Project Path="src/Modules/BookingSystem.Inventory/BookingSystem.Inventory.API/BookingSystem.Inventory.API.csproj" />
-    <Project Path="src/Modules/BookingSystem.Inventory/BookingSystem.Inventory.Application/BookingSystem.Inventory.Application.csproj" />
-    <Project Path="src/Modules/BookingSystem.Inventory/BookingSystem.Inventory.Domain/BookingSystem.Inventory.Domain.csproj" />
-    <Project Path="src/Modules/BookingSystem.Inventory/BookingSystem.Inventory.Infrastructure/BookingSystem.Inventory.Infrastructure.csproj" />
-    <Project Path="src/Modules/BookingSystem.Inventory/BookingSystem.Inventory.MigrationRunner/BookingSystem.Inventory.MigrationRunner.csproj" />
+  <Folder Name="/src/Modules/BookingSystem.Cinema/">
+    <Project Path="src/Modules/BookingSystem.Cinema/BookingSystem.Cinema.API/BookingSystem.Cinema.API.csproj" />
+    <Project Path="src/Modules/BookingSystem.Cinema/BookingSystem.Cinema.Application/BookingSystem.Cinema.Application.csproj" />
+    <Project Path="src/Modules/BookingSystem.Cinema/BookingSystem.Cinema.Domain/BookingSystem.Cinema.Domain.csproj" />
+    <Project Path="src/Modules/BookingSystem.Cinema/BookingSystem.Cinema.Infrastructure/BookingSystem.Cinema.Infrastructure.csproj" />
+    <Project Path="src/Modules/BookingSystem.Cinema/BookingSystem.Cinema.MigrationRunner/BookingSystem.Cinema.MigrationRunner.csproj" />
   </Folder>
   <Folder Name="/src/Modules/BookingSystem.Payment/">
     <Project Path="src/Modules/BookingSystem.Payment/BookingSystem.Payment.API/BookingSystem.Payment.API.csproj" />

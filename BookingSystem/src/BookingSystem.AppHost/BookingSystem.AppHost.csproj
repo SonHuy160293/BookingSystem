@@ -7,14 +7,15 @@
   <ItemGroup>
     <PackageReference Include="Aspire.Hosting.AppHost" />
     <PackageReference Include="Aspire.Hosting.SqlServer" />
+    <PackageReference Include="Aspire.Hosting.PostgreSQL" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Modules\BookingSystem.Identity\BookingSystem.Identity.API\BookingSystem.Identity.API.csproj" />
     <ProjectReference Include="..\Modules\BookingSystem.Identity\BookingSystem.Identity.MigrationRunner\BookingSystem.Identity.MigrationRunner.csproj" />
     <ProjectReference Include="..\Modules\BookingSystem.Order\BookingSystem.Order.API\BookingSystem.Order.API.csproj" />
     <ProjectReference Include="..\Modules\BookingSystem.Order\BookingSystem.Order.MigrationRunner\BookingSystem.Order.MigrationRunner.csproj" />
-    <ProjectReference Include="..\Modules\BookingSystem.Inventory\BookingSystem.Inventory.API\BookingSystem.Inventory.API.csproj" />
-    <ProjectReference Include="..\Modules\BookingSystem.Inventory\BookingSystem.Inventory.MigrationRunner\BookingSystem.Inventory.MigrationRunner.csproj" />
+    <ProjectReference Include="..\Modules\BookingSystem.Cinema\BookingSystem.Cinema.API\BookingSystem.Cinema.API.csproj" />
+    <ProjectReference Include="..\Modules\BookingSystem.Cinema\BookingSystem.Cinema.MigrationRunner\BookingSystem.Cinema.MigrationRunner.csproj" />
     <ProjectReference Include="..\Modules\BookingSystem.Payment\BookingSystem.Payment.API\BookingSystem.Payment.API.csproj" />
     <ProjectReference Include="..\Modules\BookingSystem.Payment\BookingSystem.Payment.MigrationRunner\BookingSystem.Payment.MigrationRunner.csproj" />
     <ProjectReference Include="..\Modules\BookingSystem.Cart\BookingSystem.Cart.API\BookingSystem.Cart.API.csproj" />

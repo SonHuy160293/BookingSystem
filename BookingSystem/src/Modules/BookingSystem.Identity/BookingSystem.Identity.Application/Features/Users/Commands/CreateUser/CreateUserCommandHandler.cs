@@ -43,7 +43,8 @@ public sealed class CreateUserCommandHandler : ICommandHandler<CreateUserCommand
             request.FullName,
             userName,
             email,
-            request.JobTitle);
+            request.JobTitle,
+            null);
         var passwordHash = _passwordHasher.HashPassword(user, request.Password);
 
         user.SetIdentityCredentials(

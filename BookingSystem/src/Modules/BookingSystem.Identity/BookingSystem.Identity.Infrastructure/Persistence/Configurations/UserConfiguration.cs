@@ -31,5 +31,15 @@ public sealed class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(user => user.LockoutEnabled).IsRequired();
         builder.Property(user => user.AccessFailedCount).IsRequired();
         builder.Property(user => user.AvatarUrl).HasMaxLength(500);
+        builder.Property(user => user.BranchId).IsRequired(false);
+
+        builder.HasIndex(user => user.BranchId)
+            .HasDatabaseName("IX_Users_BranchId");
+
+        builder.HasOne<Branch>()
+            .WithMany()
+            .HasForeignKey(user => user.BranchId)
+            .OnDelete(DeleteBehavior.NoAction)
+            .HasConstraintName("FK_Users_Branches_BranchId");
     }
 }

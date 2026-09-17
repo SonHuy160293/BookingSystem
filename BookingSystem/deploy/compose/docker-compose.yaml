@@ -17,23 +17,24 @@ services:
       retries: 10
       start_period: 30s
 
-  migrationrunner:
+  identity-migrationrunner:
     build:
       context: ../..
       dockerfile: Dockerfile
-      target: final-migration
+      target: final-identity-migration
     env_file:
       - ../env/.dev.env
     depends_on:
       sqlserver:
         condition: service_healthy
+    container_name: bookingsystem-identity-migrationrunner
     restart: "no"
 
-  api:
+  identity-api:
     build:
       context: ../..
       dockerfile: Dockerfile
-      target: final-api
+      target: final-identity-api
     container_name: bookingsystem-identity-api
     env_file:
       - ../env/.dev.env
@@ -45,7 +46,7 @@ services:
     depends_on:
       sqlserver:
         condition: service_healthy
-      migrationrunner:
+      identity-migrationrunner:
         condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health/ready"]
@@ -54,6 +55,60 @@ services:
       retries: 3
       start_period: 30s
     
+  cinema-postgres:
+    image: postgres:17-alpine
+    container_name: bookingsystem-cinema-postgres
+    env_file:
+      - ../env/.cinema.dev.env
+    ports:
+      - "5432:5432"
+    volumes:
+      - cinema-postgres-data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  cinema-migrationrunner:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+      target: final-cinema-migration
+    container_name: bookingsystem-cinema-migrationrunner
+    env_file:
+      - ../env/.cinema.dev.env
+    depends_on:
+      cinema-postgres:
+        condition: service_healthy
+    restart: "no"
+
+  cinema-api:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+      target: final-cinema-api
+    container_name: bookingsystem-cinema-api
+    env_file:
+      - ../env/.cinema.dev.env
+    ports:
+      - "8081:8080"
+    restart: unless-stopped
+    depends_on:
+      cinema-postgres:
+        condition: service_healthy
+      cinema-migrationrunner:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health/ready"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
 volumes:
   sqlserver-data:
   api-uploads:
+  cinema-postgres-data:

@@ -83,6 +83,7 @@ public static class ObservabilityExtensions
                 .SetSampler(new ParentBasedSampler(new TraceIdRatioBasedSampler(
                     double.IsFinite(options.TraceSamplingRatio) ? Math.Clamp(options.TraceSamplingRatio, 0, 1) : 1)))
                 .AddSource("BookingSystem.Cqrs")
+                .AddSource("Npgsql")
                 .AddAspNetCoreInstrumentation(instrumentation =>
                 {
                     instrumentation.RecordException = false;

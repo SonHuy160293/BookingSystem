@@ -10,15 +10,31 @@ docker compose -f deploy/compose/docker-compose.observability.yaml up -d
 
 Open [BookingSystem overview](http://localhost:3000/d/bookingsystem-overview/bookingsystem-overview). Anonymous access is Viewer. Local administrator login is `admin` with `local-observability`, or set `GRAFANA_ADMIN_PASSWORD` before the first startup. These settings are for local development.
 
-Run the Identity API and its migration owner in Docker with the stack:
+Run the Identity and Cinema APIs and their migration owners in Docker with the stack:
 
 ```powershell
 docker compose -f deploy/compose/docker-compose.yaml -f deploy/compose/docker-compose.observability.yaml -f deploy/compose/docker-compose.observability.override.yaml up -d --build
 ```
 
-The existing `deploy/env/.dev.env` must contain the application's development configuration. SQL Server and migration completion remain application dependencies; telemetry backends are never startup/readiness dependencies. No production environment files are modified.
+Identity uses `deploy/env/.dev.env`; Cinema uses `deploy/env/.cinema.dev.env`. Copy the matching examples and set local secrets before starting the stack. SQL Server/PostgreSQL health and migration completion remain application dependencies; telemetry backends are never startup/readiness dependencies. No production environment files are modified.
 
-For Aspire, start the telemetry stack first, then run `dotnet run --project src/BookingSystem.AppHost`. AppHost supplies `http://localhost:4317` to its currently active Identity API and MigrationRunner, overriding Aspire's dashboard OTLP endpoint. Set AppHost's `Observability:Endpoint` if using another Collector address. Other modules remain disabled in AppHost as they were before this change. All five APIs use the same telemetry registration, and all five MigrationRunners initialize and dispose the telemetry providers.
+### Connecting an existing Docker application
+
+If the application and telemetry stack already run as separate Compose projects, retain those projects and connect the application to the telemetry network. Starting only the telemetry stack does not configure an existing API: `localhost:4317` inside its container refers to that container.
+
+Start the telemetry stack first, then merge the endpoint override and external-network override into the existing application project:
+
+```powershell
+# Use the base compose file from the checkout running your application.
+$applicationCompose = 'deploy/compose/docker-compose.yaml'
+docker compose -p bookingsystem-compose -f $applicationCompose -f deploy/compose/docker-compose.observability.override.yaml -f deploy/compose/docker-compose.observability.external.yaml up -d --no-deps identity-api cinema-api
+```
+
+This recreates only the two APIs with `http://otel-collector:4317` and both networks; SQL Server, PostgreSQL, migrations, and existing volumes remain in place. Use this command only after both modules and their migrations have already started successfully. Include both overrides in future application Compose commands, including when running the MigrationRunner. Do not include `docker-compose.observability.yaml` in this separate-project command. If the telemetry project has a different network name, set `OBSERVABILITY_NETWORK` to that existing network before running it.
+
+Open the overview with service **All** and a recent time range, send an API request, and allow around 20–30 seconds for metric export and scraping. Logs and traces generally arrive sooner. The dashboard shows request telemetry, not database records. Validate with `./scripts/smoke-observability.ps1`; its default request is a harmless Swagger GET.
+
+For Aspire, start the telemetry stack first, then run `dotnet run --project src/BookingSystem.AppHost`. AppHost supplies `http://localhost:4317` to its active Identity and Cinema APIs and MigrationRunners, overriding Aspire's dashboard OTLP endpoint. Set AppHost's `Observability:Endpoint` if using another Collector address. Order, Payment, and Cart remain disabled in AppHost. All five APIs use the same telemetry registration, and all five MigrationRunners initialize and dispose the telemetry providers.
 
 For hosts started directly, use `OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317`. Inside the combined Compose stack it is `http://otel-collector:4317`. Export uses gRPC for every signal through one endpoint; per-signal endpoints/protocols and `OTEL_RESOURCE_ATTRIBUTES` are intentionally not used. This prevents bypassing the Collector and unrestricted resource attributes. ServiceDefaults calls `AddBookingSystemObservability`; it continues to own health, discovery, and HTTP resilience.
 

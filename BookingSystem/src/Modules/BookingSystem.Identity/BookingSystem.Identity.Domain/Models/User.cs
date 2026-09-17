@@ -23,10 +23,11 @@ public sealed class User : Entity<Guid>
     public bool LockoutEnabled { get; private set; }
     public int AccessFailedCount { get; private set; }
     public string? AvatarUrl { get; private set; }
+    public Guid? BranchId { get; private set; }
 
     private User() { }
 
-    private User(Guid id, bool isEnabled, string fullName, string userName, string email, string jobTitle)
+    private User(Guid id, bool isEnabled, string fullName, string userName, string email, string jobTitle, Guid? branchId)
         : base(id)
     {
         IsEnabled = isEnabled;
@@ -34,11 +35,12 @@ public sealed class User : Entity<Guid>
         UserName = userName;
         Email = email;
         JobTitle = jobTitle;
+        BranchId = branchId;
     }
 
-    public static User Create(bool isEnabled, string fullName, string userName, string email, string jobTitle)
+    public static User Create(bool isEnabled, string fullName, string userName, string email, string jobTitle, Guid? branchId)
     {
-        return new User(Guid.CreateVersion7(), isEnabled, fullName.Trim(), userName.Trim(), email.Trim(), jobTitle.Trim());
+        return new User(Guid.CreateVersion7(), isEnabled, fullName.Trim(), userName.Trim(), email.Trim(), jobTitle.Trim(), branchId);
     }
 
     public void SetIdentityCredentials(

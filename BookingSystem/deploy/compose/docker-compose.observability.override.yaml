@@ -1,13 +1,23 @@
 # Merge with docker-compose.yaml and docker-compose.observability.yaml.
 # Telemetry availability never gates application startup or readiness.
 services:
-  api:
+  identity-api:
     environment:
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
       OTEL_EXPORTER_OTLP_PROTOCOL: grpc
       OTEL_SERVICE_NAME: BookingSystem.Identity.API
-  migrationrunner:
+  identity-migrationrunner:
     environment:
       OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
       OTEL_EXPORTER_OTLP_PROTOCOL: grpc
       OTEL_SERVICE_NAME: BookingSystem.Identity.MigrationRunner
+  cinema-api:
+    environment:
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+      OTEL_EXPORTER_OTLP_PROTOCOL: grpc
+      OTEL_SERVICE_NAME: BookingSystem.Cinema.API
+  cinema-migrationrunner:
+    environment:
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+      OTEL_EXPORTER_OTLP_PROTOCOL: grpc
+      OTEL_SERVICE_NAME: BookingSystem.Cinema.MigrationRunner

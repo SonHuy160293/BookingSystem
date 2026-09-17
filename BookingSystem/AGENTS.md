@@ -12,7 +12,7 @@ BookingSystem is a modular-monolith backend built with ASP.NET Core and Clean Ar
 
 Bounded contexts live under `src/Modules/<ModuleName>`, normally split into `Api / Application / Domain / Infrastructure / Worker / MigrationRunner` projects.
 
-Current modules are **Identity, Order, Inventory, Payment, and Cart**. Verify a module exists in source before modeling code after reference material.
+Current modules are **Identity, Order, Cinema, Payment, and Cart**. Verify a module exists in source before modeling code after reference material.
 
 | Area | Path | Local guidance |
 | --- | --- | --- |
