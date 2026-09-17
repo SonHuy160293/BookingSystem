@@ -1,0 +1,33 @@
+<Solution>
+  <Folder Name="/deploy/" />
+  <Folder Name="/deploy/compose/">
+    <File Path="deploy/compose/docker-compose.infrastructure.yaml" />
+    <File Path="deploy/compose/docker-compose.yaml" />
+  </Folder>
+  <Folder Name="/deploy/env/">
+    <File Path="deploy/env/.dev.env" />
+    <File Path="deploy/env/.dev.env.example" />
+    <File Path="deploy/env/.prod.env.example" />
+  </Folder>
+  <Folder Name="/Solution Items/">
+    <File Path=".editorconfig" />
+    <File Path="Directory.Build.props" />
+    <File Path="Directory.Packages.props" />
+  </Folder>
+  <Folder Name="/src/" />
+  <Folder Name="/src/BuildingBlocks/">
+    <Project Path="src/BuildingBlocks/BookingSystem.AspNetCore/BookingSystem.AspNetCore.csproj" />
+    <Project Path="src/BuildingBlocks/BookingSystem.EntityFrameworkCore/BookingSystem.EntityFrameworkCore.csproj" />
+    <Project Path="src/BuildingBlocks/BookingSystem.SharedKernel/BookingSystem.SharedKernel.csproj" />
+  </Folder>
+  <Folder Name="/src/Contracts/" />
+  <Folder Name="/src/Modules/" />
+  <Folder Name="/src/Modules/BookingSystem.Identity/">
+    <Project Path="src/Modules/BookingSystem.Identity/BookingSystem.Identity.API/BookingSystem.Identity.API.csproj" />
+    <Project Path="src/Modules/BookingSystem.Identity/BookingSystem.Identity.Application/BookingSystem.Identity.Application.csproj" />
+    <Project Path="src/Modules/BookingSystem.Identity/BookingSystem.Identity.Domain/BookingSystem.Identity.Domain.csproj" />
+    <Project Path="src/Modules/BookingSystem.Identity/BookingSystem.Identity.Infrastructure/BookingSystem.Identity.Infrastructure.csproj" />
+    <Project Path="src/Modules/BookingSystem.Identity/BookingSystem.Identity.MigrationRunner/BookingSystem.Identity.MigrationRunner.csproj" />
+  </Folder>
+  <Folder Name="/tests/" />
+</Solution>

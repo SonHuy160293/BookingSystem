@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+    <ItemGroup>
+        <PackageReference Include="Microsoft.EntityFrameworkCore.Design">
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+        <PackageReference Include="Swashbuckle.AspNetCore" />
+    </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\..\..\BuildingBlocks\BookingSystem.AspNetCore\BookingSystem.AspNetCore.csproj" />
+      <ProjectReference Include="..\..\..\BuildingBlocks\BookingSystem.SharedKernel\BookingSystem.SharedKernel.csproj" />
+      <ProjectReference Include="..\BookingSystem.Identity.Application\BookingSystem.Identity.Application.csproj" />
+      <ProjectReference Include="..\BookingSystem.Identity.Infrastructure\BookingSystem.Identity.Infrastructure.csproj" />
+    </ItemGroup>
+</Project>
