@@ -20,6 +20,21 @@ public sealed class AddUserRoleCommandValidator : IValidator<AddUserRoleCommand>
             errors.Add("RoleId must not be empty.");
         }
 
+        if (command.Request.TenantId == Guid.Empty)
+        {
+            errors.Add("TenantId must not be empty when supplied.");
+        }
+
+        if (command.Request.BranchId == Guid.Empty)
+        {
+            errors.Add("BranchId must not be empty when supplied.");
+        }
+
+        if (command.Request.BranchId.HasValue && !command.Request.TenantId.HasValue)
+        {
+            errors.Add("TenantId is required when BranchId is supplied.");
+        }
+
         if (errors.Count > 0)
         {
             throw new CqrsValidationException(errors);

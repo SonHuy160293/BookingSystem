@@ -1,5 +1,6 @@
 using BookingSystem.Identity.Application.Abstractions.Repositories;
 using BookingSystem.Identity.Application.Contracts.Roles;
+using BookingSystem.Identity.Domain.Enums;
 using BookingSystem.Identity.Domain.Models;
 using BookingSystem.Identity.Infrastructure.Persistence.Core;
 using BookingSystem.SharedKernel.Abstractions.Shared;
@@ -57,8 +58,9 @@ public sealed class RolesRepository : RepositoryBase<Role>, IRolesRepository
         return roles.Single();
     }
 
-    public Task<bool> NormalizedNameExistsAsync(string normalizedName, CancellationToken cancellationToken)
-        => Query(role => role.NormalizedName == normalizedName).AnyAsync(cancellationToken);
+    public Task<bool> NormalizedNameExistsAsync(string normalizedName, Guid? tenantId, RbacScopeType scopeType, CancellationToken cancellationToken)
+        => Query(role => role.NormalizedName == normalizedName && role.TenantId == tenantId && role.ScopeType == scopeType)
+            .AnyAsync(cancellationToken);
 
     public async Task<IReadOnlyCollection<string>> GetEnabledPermissionValuesAsync(IReadOnlyCollection<string> values, CancellationToken cancellationToken)
         => await DbContext.PermissionDefinitions.AsNoTracking()
@@ -79,7 +81,10 @@ public sealed class RolesRepository : RepositoryBase<Role>, IRolesRepository
             role.Name,
             role.Description,
             role.CreatedAt,
-            Array.Empty<string>()));
+            Array.Empty<string>(),
+            role.TenantId,
+            role.ScopeType == RbacScopeType.Platform ? "PLATFORM" :
+                role.ScopeType == RbacScopeType.Tenant ? "TENANT" : "BRANCH"));
 
     private static IOrderedQueryable<Role> ApplySorting(IQueryable<Role> query, GetRolesRequest request)
     {

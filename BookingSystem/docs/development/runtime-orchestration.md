@@ -6,7 +6,7 @@
 
 Its current responsibilities include:
 
-- one persistent SQL Server resource;
+- persistent SQL Server for Identity and PostgreSQL 17 for Cinema;
 - the actual module databases;
 - each module's `MigrationRunner`;
 - each API.
@@ -17,7 +17,7 @@ Start local orchestration with:
 dotnet run --project src/BookingSystem.AppHost
 ```
 
-Aspire uses the container runtime for SQL Server and provides local observability through its Dashboard.
+Aspire uses the container runtime for SQL Server and PostgreSQL and provides local observability through its Dashboard.
 
 ## 2. Migration ownership
 

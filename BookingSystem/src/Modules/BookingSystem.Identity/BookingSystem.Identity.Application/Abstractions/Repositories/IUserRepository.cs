@@ -13,7 +13,7 @@ public interface IUserRepository : IRepositoryBase<User>
 
     Task<AccountUserDto> GetUserByIdAsync(Guid id, CancellationToken cancellationToken);
 
-    Task<bool> HasRoleAsync(Guid userId, Guid roleId, CancellationToken cancellationToken);
+    Task<bool> HasRoleAsync(Guid userId, Guid roleId, Guid? tenantId, Guid? branchId, CancellationToken cancellationToken);
 
     Task AddUserRoleAsync(UserRole userRole, CancellationToken cancellationToken);
 }

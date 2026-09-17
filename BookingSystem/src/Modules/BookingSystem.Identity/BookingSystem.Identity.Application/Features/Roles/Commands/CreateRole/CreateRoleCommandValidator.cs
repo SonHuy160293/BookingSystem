@@ -11,6 +11,20 @@ public sealed class CreateRoleCommandValidator : IValidator<CreateRoleCommand>
         var errors = new List<string>();
         var name = command.Request.Name?.Trim();
 
+        if (command.Request.TenantId == Guid.Empty)
+        {
+            errors.Add("TenantId must not be empty when supplied.");
+        }
+
+        if (command.Request.ScopeType is not ("PLATFORM" or "TENANT" or "BRANCH"))
+        {
+            errors.Add("ScopeType must be PLATFORM, TENANT, or BRANCH.");
+        }
+        else if (command.Request.ScopeType == "PLATFORM" && command.Request.TenantId.HasValue)
+        {
+            errors.Add("PLATFORM roles must not have a TenantId.");
+        }
+
         if (string.IsNullOrWhiteSpace(name))
         {
             errors.Add("Name is required.");

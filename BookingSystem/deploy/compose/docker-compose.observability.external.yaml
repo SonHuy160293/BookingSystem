@@ -1,0 +1,27 @@
+# Merge with the application compose file and observability.override.yaml when
+# docker-compose.observability.yaml runs as a separate Compose project.
+# Keep the application default network for SQL Server and PostgreSQL communication.
+services:
+  identity-api:
+    networks:
+      - default
+      - observability
+  identity-migrationrunner:
+    networks:
+      - default
+      - observability
+
+  cinema-api:
+    networks:
+      - default
+      - observability
+  cinema-migrationrunner:
+    networks:
+      - default
+      - observability
+
+networks:
+  observability:
+    external: true
+    name: ${OBSERVABILITY_NETWORK:-bookingsystem-observability_default}
+

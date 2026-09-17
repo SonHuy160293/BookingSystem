@@ -1,3 +1,4 @@
+using BookingSystem.Identity.Domain.Enums;
 using BookingSystem.Identity.Domain.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -8,7 +9,10 @@ public sealed class PermissionDefinitionConfiguration : IEntityTypeConfiguration
 {
     public void Configure(EntityTypeBuilder<PermissionDefinition> builder)
     {
-        builder.ToTable("PermissionDefinitions", "dbo");
+        builder.ToTable("PermissionDefinitions", "dbo", table =>
+        {
+            table.HasCheckConstraint("CK_PermissionDefinitions_ScopeType", "[ScopeType] IN ('PLATFORM', 'TENANT', 'BRANCH')");
+        });
 
         builder.HasKey(permissionDefinition => permissionDefinition.Id);
 
@@ -32,6 +36,14 @@ public sealed class PermissionDefinitionConfiguration : IEntityTypeConfiguration
         builder.Property(permissionDefinition => permissionDefinition.DisplayOrder)
             .IsRequired();
         builder.Property(permissionDefinition => permissionDefinition.IsEnabled)
+            .IsRequired();
+        builder.Property(permissionDefinition => permissionDefinition.ScopeType)
+            .HasConversion(
+                scopeType => scopeType.ToString().ToUpperInvariant(),
+                value => Enum.Parse<RbacScopeType>(value, true))
+            .HasColumnType("varchar(8)")
+            .HasMaxLength(8)
+            .IsUnicode(false)
             .IsRequired();
     }
 }

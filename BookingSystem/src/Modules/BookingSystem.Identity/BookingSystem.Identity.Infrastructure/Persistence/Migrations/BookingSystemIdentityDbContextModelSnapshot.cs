@@ -22,6 +22,40 @@ namespace BookingSystem.Identity.Infrastructure.Persistence.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("BookingSystem.Identity.Domain.Models.Branch", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Address")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset(7)");
+
+                    b.Property<string>("CreatedBy")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("datetimeoffset(7)");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Branches", "dbo");
+                });
+
             modelBuilder.Entity("BookingSystem.Identity.Domain.Models.PermissionDefinition", b =>
                 {
                     b.Property<Guid>("Id")
@@ -143,6 +177,9 @@ namespace BookingSystem.Identity.Infrastructure.Persistence.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<Guid?>("BranchId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("ConcurrencyStamp")
                         .HasColumnType("nvarchar(max)");
 
@@ -216,6 +253,9 @@ namespace BookingSystem.Identity.Infrastructure.Persistence.Migrations
                         .HasColumnType("nvarchar(256)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("BranchId")
+                        .HasDatabaseName("IX_Users_BranchId");
 
                     b.ToTable("Users", "dbo");
                 });
@@ -305,6 +345,15 @@ namespace BookingSystem.Identity.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired()
                         .HasConstraintName("FK_RoleClaims_Roles_RoleId");
+                });
+
+            modelBuilder.Entity("BookingSystem.Identity.Domain.Models.User", b =>
+                {
+                    b.HasOne("BookingSystem.Identity.Domain.Models.Branch", null)
+                        .WithMany()
+                        .HasForeignKey("BranchId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .HasConstraintName("FK_Users_Branches_BranchId");
                 });
 
             modelBuilder.Entity("BookingSystem.Identity.Domain.Models.UserClaim", b =>

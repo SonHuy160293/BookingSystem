@@ -1,5 +1,6 @@
 using BookingSystem.Identity.Application.Abstractions.Persistence;
 using BookingSystem.Identity.Application.Contracts.Roles;
+using BookingSystem.Identity.Domain.Enums;
 using BookingSystem.Identity.Domain.Models;
 using BookingSystem.SharedKernel.Abstractions.Shared;
 
@@ -11,7 +12,7 @@ public interface IRolesRepository : IRepositoryBase<Role>
 
     Task<RoleDto> GetRoleByIdAsync(Guid id, CancellationToken cancellationToken);
 
-    Task<bool> NormalizedNameExistsAsync(string normalizedName, CancellationToken cancellationToken);
+    Task<bool> NormalizedNameExistsAsync(string normalizedName, Guid? tenantId, RbacScopeType scopeType, CancellationToken cancellationToken);
 
     Task<IReadOnlyCollection<string>> GetEnabledPermissionValuesAsync(IReadOnlyCollection<string> values, CancellationToken cancellationToken);
     Task<IReadOnlyCollection<string>> GetAssignedPermissionValuesAsync(Guid roleId, CancellationToken cancellationToken);

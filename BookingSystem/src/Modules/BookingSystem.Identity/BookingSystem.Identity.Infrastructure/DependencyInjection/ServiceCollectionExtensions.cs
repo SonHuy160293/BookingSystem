@@ -44,6 +44,8 @@ public static class ServiceCollectionExtensions
 
     public static IServiceCollection AddRepositories(this IServiceCollection services)
         => services
+            .AddScoped<IBranchRepository, BranchRepository>()
+            .AddScoped<ITenantRepository, TenantRepository>()
             .AddScoped<IRolesRepository, RolesRepository>()
             .AddScoped<IUserRepository, UserRepository>();
 

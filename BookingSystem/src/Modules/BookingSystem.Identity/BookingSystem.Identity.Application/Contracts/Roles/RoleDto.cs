@@ -5,4 +5,6 @@ public sealed record RoleDto(
     string? Name,
     string? Description,
     DateTimeOffset CreatedAt,
-    IReadOnlyCollection<string> Permissions);
+    IReadOnlyCollection<string> Permissions,
+    Guid? TenantId,
+    string ScopeType);

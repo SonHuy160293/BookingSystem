@@ -33,10 +33,15 @@ public sealed class UserRepository : RepositoryBase<User>, IUserRepository
             .SingleOrDefaultAsync(cancellationToken)
             ?? throw new NotFoundException("User.NotFound", $"User '{id}' was not found.");
 
-    public Task<bool> HasRoleAsync(Guid userId, Guid roleId, CancellationToken cancellationToken)
+    public Task<bool> HasRoleAsync(Guid userId, Guid roleId, Guid? tenantId, Guid? branchId, CancellationToken cancellationToken)
         => DbContext.UserRoles
             .AsNoTracking()
-            .AnyAsync(userRole => userRole.UserId == userId && userRole.RoleId == roleId, cancellationToken);
+            .AnyAsync(userRole =>
+                userRole.UserId == userId &&
+                userRole.RoleId == roleId &&
+                userRole.TenantId == tenantId &&
+                userRole.BranchId == branchId,
+                cancellationToken);
 
     public async Task AddUserRoleAsync(UserRole userRole, CancellationToken cancellationToken)
         => await DbContext.UserRoles.AddAsync(userRole, cancellationToken);

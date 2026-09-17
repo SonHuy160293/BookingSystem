@@ -27,14 +27,22 @@ builder.AddProject<Projects.BookingSystem_Identity_API>("identity-api")
 //    .WaitForCompletion(orderMigration)
 //    .WithHttpHealthCheck("/health");
 
-//var inventoryDb = sqlServer.AddDatabase("inventorydb", "InventoryDb");
-//var inventoryMigration = builder.AddProject<Projects.BookingSystem_Inventory_MigrationRunner>("inventory-migration")
-//    .WithReference(inventoryDb, connectionName: "ApplicationDb")
-//    .WaitFor(sqlServer);
-//builder.AddProject<Projects.BookingSystem_Inventory_API>("inventory-api")
-//    .WithReference(inventoryDb, connectionName: "ApplicationDb")
-//    .WaitForCompletion(inventoryMigration)
-//    .WithHttpHealthCheck("/health");
+var postgresPassword = builder.AddParameter("postgres-password", secret: true);
+var postgres = builder.AddPostgres("cinema-postgres", password: postgresPassword)
+    .WithImageTag("17-alpine")
+    .WithDataVolume();
+var cinemaDb = postgres.AddDatabase("cinemadb", "CinemaDb");
+var cinemaMigration = builder.AddProject<Projects.BookingSystem_Cinema_MigrationRunner>("cinema-migration")
+    .WithEnvironment("OTEL_EXPORTER_OTLP_ENDPOINT", collectorEndpoint)
+    .WithEnvironment("OTEL_EXPORTER_OTLP_PROTOCOL", "grpc")
+    .WithReference(cinemaDb, connectionName: "ApplicationDb")
+    .WaitFor(postgres);
+builder.AddProject<Projects.BookingSystem_Cinema_API>("cinema-api")
+    .WithEnvironment("OTEL_EXPORTER_OTLP_ENDPOINT", collectorEndpoint)
+    .WithEnvironment("OTEL_EXPORTER_OTLP_PROTOCOL", "grpc")
+    .WithReference(cinemaDb, connectionName: "ApplicationDb")
+    .WaitForCompletion(cinemaMigration)
+    .WithHttpHealthCheck("/health");
 
 //var paymentDb = sqlServer.AddDatabase("paymentdb", "PaymentDb");
 //var paymentMigration = builder.AddProject<Projects.BookingSystem_Payment_MigrationRunner>("payment-migration")
